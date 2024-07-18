@@ -33,7 +33,7 @@ const AGENCY_SALES = {
       );
       return JSON.stringify({ data });
     } catch (err) {
-      return "Error trying to execute the tool", err;
+      return `Error trying to execute the tool: ${err}`;
     }
   },
 };
@@ -71,10 +71,54 @@ const SOLD_UNITS = {
 
       return JSON.stringify({ data });
     } catch (error) {
-      return "Error trying to execute ", error;
+      return `Error trying to execute the tool: ${error}`;
+    }
+  },
+};
+// START NEW TOOL : Returns all blocks associated with a specific project by project ID"
+const blockByProjectSchema = yup.object({
+  projectId: yup.number().label("projectId").required("should be a number"),
+  organizationId: yup.number().label("organizationId").required("should be a number"),
+  pageSize: yup.number().label("pageSize").required("should be a number"),
+});
+
+const blockByProjectsJsonSchema = yupToJsonSchema(blockByProjectSchema);
+
+const BLOCK_BY_PROJECT = {
+  name: "block_by_units",
+  description: "Returns all blocks associated with a specific project by project ID",
+  category: "hackathon",
+  subcategory: "communication",
+  functionType: "backend",
+  dangerous: false,
+  associatedCommands: [],
+  prerequisites: [],
+  parameters: blockByProjectsJsonSchema,
+  rerun: true,
+  rerunWithDifferentParameters: false,
+  runCmd: async ({ projectId, organizationId, pageSize }) => {
+    const TOKEN = process.env.TOKEN;
+    try {
+      const response = await axios.get(
+        `http://localhost:3001/organizations/${organizationId}/projects/${projectId}/blocks`,
+        {
+          params: {
+            page_size: pageSize,
+          },
+          headers: {
+            Authorization: `Bearer ${TOKEN}`,
+          },
+        }
+      );
+      const { data } = response.data;
+      return JSON.stringify(data);
+    } catch (err) {
+      return `Error trying to execute the tool: ${err}`;
     }
   },
 };
 
-const tools = [SOLD_UNITS, AGENCY_SALES];
+
+
+const tools = [SOLD_UNITS, AGENCY_SALES, BLOCK_BY_PROJECT];
 module.exports = tools;
