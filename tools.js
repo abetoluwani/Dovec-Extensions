@@ -85,7 +85,7 @@ const blockByProjectSchema = yup.object({
 const blockByProjectsJsonSchema = yupToJsonSchema(blockByProjectSchema);
 
 const BLOCK_BY_PROJECT = {
-  name: "block_by_units",
+  name: "block_by_project",
   description: "Returns all blocks associated with a specific project by project ID",
   category: "hackathon",
   subcategory: "communication",
@@ -118,7 +118,128 @@ const BLOCK_BY_PROJECT = {
   },
 };
 
+// NEW TOOL : Returns all UNITS associated with a specific BLOCK by BLOCK ID"
+const unitByBlockSchema = yup.object({
+  organizationID :yup.number().label("organazationID").required("should be a number"),
+  blockID : yup.number().label("blockID").required("should be a number"),
+  pageSIZE : yup.number().label("pageSIZE").required("should be a number")
+});
+const unitByBlockJsonSchema = yupToJsonSchema(unitByBlockSchema);
+
+const UNIT_BY_BLOCK = {
+  name: "unit_by_block",
+  description: "Returns all units associated with a specific block by block ID",
+  category: "hackathon",
+  subcategory: "communication",
+  functionType: "backend",
+  dangerous: false,
+  associatedCommands: [],
+  prerequisites: [],
+  parameters: unitByBlockJsonSchema ,
+  rerun: true,
+  rerunWithDifferentParameters: false,
+  runCmd: async ({ organizationID, blockID, pageSIZE}) => {
+    const TOKEN = process.env.TOKEN;
+    try {
+      const response = await axios.get(
+        `http://localhost:3001/organizations/${organizationID}/blocks/${blockID}/units`,
+        {
+          params: {
+            page_size: pageSIZE,
+          },
+          headers: {
+            Authorization: `Bearer ${TOKEN}`,
+          },
+        }
+      );
+      const { data } = response.data;
+      return JSON.stringify(data);
+    } catch (err) {
+      return `Error trying to execute the tool: ${err}`;
+    }
+  },
+};
+
+// NEW TOOL : Returns details of a specific unit by its unit ID 
+const unitDetailByUnitIdSchema = yup.object({
+  organization_ID :yup.number().label("organization_ID").required("should be a number"),
+  block_ID :yup.number().label("block_ID").required("should be a number"),
+  unit_ID : yup.number().label("unit_ID").required("should be a number")
+});
+const unitDetailByUnitIdJsonSchema = yupToJsonSchema(unitDetailByUnitIdSchema);
+const UNITDETAIL_BY_UNITID = {
+  name: "unitDetail_by_unitID",
+  description: "Returns detailed information about a specific unit identified by its unit ID within a specified block and organization",
+  category: "hackathon",
+  subcategory: "communication",
+  functionType: "backend",
+  dangerous: false,
+  associatedCommands: [],
+  prerequisites: [],
+  parameters: unitDetailByUnitIdJsonSchema ,
+  rerun: true,
+  rerunWithDifferentParameters: false,
+  runCmd:async({organization_ID,block_ID,unit_ID}) =>{
+    const TOKEN = process.env.TOKEN;
+    try{
+      const response =await axios.get(
+        `http://localhost:3001/organizations/${organization_ID}/blocks/${block_ID}/units/${unit_ID}`,
+        {
+          headers: {
+            Authorization: `Bearer ${TOKEN}`,
+          },
+        }
+      )
+      return response.data;
+    }
+    catch(err){
+      return `Error trying to execute the tool: ${err}`;
+
+    }
+    
+  },
+ 
+};
+// NEW TOOL : Returns all contracts managed by a specific agency ID
+const contractsByAgencySchema = yup.object({
+  agencyID : yup.number().label("agencyID").required("should be a number"),
+
+});
+const contractsByAgencyJasonSchema = contractsByAgencySchema;
+const contracts_BY_AGENCY= {
+  name: "contracts_by_agency",
+  description: "Returns all contracts managed by a specific agency ID",
+  category: "hackathon",
+  subcategory: "communication",
+  functionType: "backend",
+  dangerous: false,
+  associatedCommands: [],
+  prerequisites: [],
+  parameters: contractsByAgencyJasonSchema,
+  rerun: true,
+  rerunWithDifferentParameters: false,
+  runCmd : async({agencyID}) => {
+    const TOKEN = process.env.TOKEN;
+    try{
+      const response = await axios.get (`http://localhost:3001/organizations/:organizationId/agencies/${agencyID}/contacts`,
+      {
+        headers: {
+          Authorization: `Bearer ${TOKEN}`,
+        },
+      });
+     const {data} = response.data;
+     return(data);
+
+    }
+    catch(err){
+      return `Error trying to execute the tool: ${err}` ;
+    }
+
+  },
+};
 
 
-const tools = [SOLD_UNITS, AGENCY_SALES, BLOCK_BY_PROJECT];
+ 
+
+const tools = [SOLD_UNITS, AGENCY_SALES, BLOCK_BY_PROJECT,UNIT_BY_BLOCK,UNITDETAIL_BY_UNITID,contracts_BY_AGENCY];
 module.exports = tools;
