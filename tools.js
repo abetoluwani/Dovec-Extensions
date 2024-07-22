@@ -205,7 +205,7 @@ const contractsByAgencySchema = yup.object({
   agencyID : yup.number().label("agencyID").required("should be a number"),
 
 });
-const contractsByAgencyJasonSchema = contractsByAgencySchema;
+const contractsByAgencyJasonSchema = yupToJsonSchema(contractsByAgencySchema);
 const contracts_BY_AGENCY= {
   name: "contracts_by_agency",
   description: "Returns all contracts managed by a specific agency ID",
@@ -237,8 +237,12 @@ const contracts_BY_AGENCY= {
 
   },
 };
+//NEW TOOL : returns a list of users associated with a specific organization
+const organizationUsersSchema = yup.object({
+  orgId : yup.number().label("orgId").required("should be a number"),
+});
 
-
+const organizationUsersJasonSchema = yupToJsonSchema(organizationUsersSchema);
  
 
 const tools = [SOLD_UNITS, AGENCY_SALES, BLOCK_BY_PROJECT,UNIT_BY_BLOCK,UNITDETAIL_BY_UNITID,contracts_BY_AGENCY];
