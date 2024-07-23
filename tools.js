@@ -273,8 +273,109 @@ const ORGANIZATION_USERS= {
   },
 };
 
+//8.NEW TOOL : Returns a list of representatives for a specific organization
+const getRepresentativesSchema = yup.object({
+  orgID : yup.number().label("orgID").required("should be a number"),
+});
 
- 
+const getRepresentativesJsonSchema = yupToJsonSchema(getRepresentativesSchema);
+const GET_REPRESENTATIVES= {
+  name: "get_representatives",
+  description: "Returns a list of representatives for a specific organization",
+  category: "hackathon",
+  subcategory: "communication",
+  functionType: "backend",
+  dangerous: false,
+  associatedCommands: [],
+  prerequisites: [],
+  parameters:  getRepresentativesJsonSchema ,
+  rerun: true,
+  rerunWithDifferentParameters: false,
+  runCmd : async ({orgID}) =>{
+    const TOKEN = process.env.TOKEN;
+    try{
+          const response = await axios.get(`http://localhost:3001/organizations/${orgID}/representatives`,
+      {
+        headers:
+        { 
+          Authorization: `Bearer ${TOKEN}`,
+        },
+      }
+      );
+      return response;
+    }
+    catch(err){
+      `Error trying to execute the tool: ${err}` ;
+    }
+  },
+};
+// 9. NEW TOOL: Create a new agency
+const createagencySchema = yup.object({
+  organizationId: yup.number().label("organizationId").required("should be a number"),
+  agencyLevel: yup.number().label("agencyLevel").required("should be a number"),
+  mainAgency: yup.number().label("mainAgency").nullable(),
+  agencyName: yup.string().label("agencyName").required("should be a string"),
+  authorizedUserName: yup.string().label("authorizedUserName").required("should be a string"),
+  authorizedUserSurname: yup.string().label("authorizedUserSurname").required("should be a string"),
+  authorizedUserEmail: yup.string().email().label("authorizedUserEmail").required("should be a valid email"),
+  country: yup.number().label("country").required("should be a number"),
+  authorizedUserPhoneNumber: yup.string().label("authorizedUserPhoneNumber").required("should be a string"),
+  agencyPhoneNumber: yup.string().label("agencyPhoneNumber").required("should be a string"),
+  agencySecondPhoneNumber: yup.string().label("agencySecondPhoneNumber").nullable(),
+  agencyEmail: yup.string().email().label("agencyEmail").required("should be a valid email"),
+  agencyCommissionRate: yup.number().label("agencyCommissionRate").required("should be a number"),
+  agencyStatus: yup.number().label("agencyStatus").required("should be a number"),
+  requestStatus: yup.number().label("requestStatus").required("should be a number"),
+  address: yup.string().label("address").nullable(),
+  websiteUrl: yup.string().label("websiteUrl").nullable(),
+  agencyContract: yup.string().label("agencyContract").nullable(),
+  authorizedSalesRepresentatives: yup.array().of(yup.number()).label("authorizedSalesRepresentatives").required("should be an array of numbers"),
+});
 
-const tools = [SOLD_UNITS, AGENCY_SALES, BLOCK_BY_PROJECT,UNIT_BY_BLOCK,UNITDETAIL_BY_UNITID,contracts_BY_AGENCY,ORGANIZATION_USERS];
+const createAgencyJsonSchema = yupToJsonSchema(createagencySchema);
+
+const CREATE_AGENCY = {
+  name: "create_agancy",
+  description: "Creates a new registration request",
+  category: "hackathon",
+  subcategory: "management",
+  functionType: "backend",
+  dangerous: false,
+  associatedCommands: [],
+  prerequisites: [],
+  parameters: createAgencyJsonSchema,
+  rerun: false,
+  rerunWithDifferentParameters: false,
+  runCmd: async ({
+    organizationId,agencyLevel,mainAgency,agencyName,
+    authorizedUserName,authorizedUserSurname,authorizedUserEmail,country,
+    authorizedUserPhoneNumber,agencyPhoneNumber,agencySecondPhoneNumber,agencyEmail,
+    agencyCommissionRate, agencyStatus,requestStatus,address,
+    websiteUrl,agencyContract,authorizedSalesRepresentatives
+  }) => {
+    const TOKEN = process.env.TOKEN;
+    try {
+      const response = await axios.post(`http://localhost:3001/organizations/${organizationId}/registration-requests`, {
+        agencyLevel,mainAgency,agencyName,authorizedUserName,authorizedUserSurname,
+        authorizedUserEmail,country,authorizedUserPhoneNumber,agencyPhoneNumber,
+        agencySecondPhoneNumber,agencyEmail,agencyCommissionRate,
+        agencyStatus,requestStatus,address,websiteUrl,
+        agencyContract,authorizedSalesRepresentatives
+      }, {
+        headers: {
+          Authorization: `Bearer ${TOKEN}`,
+        },
+      });
+
+      return response.data;
+    } catch (err) {
+      return `Error trying to execute the tool: ${err}`;
+    }
+  },
+};
+
+
+
+const tools = [SOLD_UNITS, AGENCY_SALES, BLOCK_BY_PROJECT,UNIT_BY_BLOCK,UNITDETAIL_BY_UNITID,
+  contracts_BY_AGENCY,ORGANIZATION_USERS,GET_REPRESENTATIVES,CREATE_AGENCY];
 module.exports = tools;
