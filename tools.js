@@ -7,7 +7,7 @@ const getAgencySaleSchema = yup.object({
   agencyId: yup.number().label("agencyId").required("should be a number"),
 });
 const agencySalesJSONSchema = yupToJsonSchema(getAgencySaleSchema);
-
+//1.NEW TOOL :Returns sales data for all agencies according to agency ID
 const AGENCY_SALES = {
   name: "agency_sales",
   description: "Returns sales data for all agencies according to agency ID",
@@ -37,7 +37,7 @@ const AGENCY_SALES = {
     }
   },
 };
-
+//2.NEW TOOL :Returns all sold units with their information
 const soldUnitsSchema = yup.object({
   startDate: yup.string().label("start date").required("should be a datetime"),
   endDate: yup.string().label("end date").required("should be a datetime"),
@@ -75,7 +75,7 @@ const SOLD_UNITS = {
     }
   },
 };
-// START NEW TOOL : Returns all blocks associated with a specific project by project ID"
+// 3.START NEW TOOL : Returns all blocks associated with a specific project by project ID"
 const blockByProjectSchema = yup.object({
   projectId: yup.number().label("projectId").required("should be a number"),
   organizationId: yup.number().label("organizationId").required("should be a number"),
@@ -118,7 +118,7 @@ const BLOCK_BY_PROJECT = {
   },
 };
 
-// NEW TOOL : Returns all UNITS associated with a specific BLOCK by BLOCK ID"
+// 4.NEW TOOL : Returns all UNITS associated with a specific BLOCK by BLOCK ID"
 const unitByBlockSchema = yup.object({
   organizationID :yup.number().label("organazationID").required("should be a number"),
   blockID : yup.number().label("blockID").required("should be a number"),
@@ -160,7 +160,7 @@ const UNIT_BY_BLOCK = {
   },
 };
 
-// NEW TOOL : Returns details of a specific unit by its unit ID 
+//5. NEW TOOL : Returns details of a specific unit by its unit ID 
 const unitDetailByUnitIdSchema = yup.object({
   organization_ID :yup.number().label("organization_ID").required("should be a number"),
   block_ID :yup.number().label("block_ID").required("should be a number"),
@@ -200,7 +200,7 @@ const UNITDETAIL_BY_UNITID = {
   },
  
 };
-// NEW TOOL : Returns all contracts managed by a specific agency ID
+// 6.NEW TOOL : Returns all contracts managed by a specific agency ID
 const contractsByAgencySchema = yup.object({
   agencyID : yup.number().label("agencyID").required("should be a number"),
 
@@ -237,13 +237,44 @@ const contracts_BY_AGENCY= {
 
   },
 };
-//NEW TOOL : returns a list of users associated with a specific organization
+//7.NEW TOOL : returns a list of users associated with a specific organization
 const organizationUsersSchema = yup.object({
   orgId : yup.number().label("orgId").required("should be a number"),
 });
 
-const organizationUsersJasonSchema = yupToJsonSchema(organizationUsersSchema);
+const organizationUsersJsonSchema = yupToJsonSchema(organizationUsersSchema);
+const ORGANIZATION_USERS= {
+  name: "organization_users",
+  description: "Returns a list of all users associated with a specific organization",
+  category: "hackathon",
+  subcategory: "communication",
+  functionType: "backend",
+  dangerous: false,
+  associatedCommands: [],
+  prerequisites: [],
+  parameters: organizationUsersJsonSchema  ,
+  rerun: true,
+  rerunWithDifferentParameters: false,
+  runCmd : async({orgId}) => {
+    const TOKEN = process.env.TOKEN;
+    try{
+      const response = await axios.get(`http://localhost:3001/organizations/${orgId}/users`,
+      {
+        headers: {
+          Authorization: `Bearer ${TOKEN}`,
+        },
+      });
+       
+      return response.data;
+    }
+    catch(err){
+      return `Error trying to execute the tool: ${err}` ;
+    }
+  },
+};
+
+
  
 
-const tools = [SOLD_UNITS, AGENCY_SALES, BLOCK_BY_PROJECT,UNIT_BY_BLOCK,UNITDETAIL_BY_UNITID,contracts_BY_AGENCY];
+const tools = [SOLD_UNITS, AGENCY_SALES, BLOCK_BY_PROJECT,UNIT_BY_BLOCK,UNITDETAIL_BY_UNITID,contracts_BY_AGENCY,ORGANIZATION_USERS];
 module.exports = tools;
