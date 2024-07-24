@@ -374,8 +374,62 @@ const CREATE_AGENCY = {
   },
 };
 
+//NEW TOOL : Creates a new project for a specific organization
+const createProjectSchema = yup.object({
+  organizationId: yup.number().label("organizationId").required("should be a number"),
+  downPaymentPercentagePerUnit: yup.number().label("downPaymentPercentagePerUnit").required("should be a number"),
+  iconUrl: yup.string().label("iconUrl").nullable(),
+  isPublished: yup.boolean().label("isPublished").default(false),
+  location: yup.string().label("location").nullable(),
+  maxReservationDuration: yup.number().label("maxReservationDuration").required("should be a number"),
+  maxReservationLimitPerRep: yup.number().label("maxReservationLimitPerRep").required("should be a number"),
+  projectName: yup.string().label("projectName").required("should be a string"),
+  projectReferenceCode: yup.string().label("projectReferenceCode").required("should be a string"),
+  videoUrl: yup.string().label("videoUrl").nullable()
+});
+const createProjectJsonSchema = yupToJsonSchema(createProjectSchema);
+const CREATE_PROJECT = {
+  name: "create_project",
+  description: "Creates a new project for a specific organization",
+  category: "hackathon",
+  subcategory: "communication",
+  functionType: "backend",
+  dangerous: false,
+  associatedCommands: [],
+  prerequisites: [],
+  parameters: createProjectJsonSchema,
+  rerun: true,
+  rerunWithDifferentParameters: false,
+  runCmd: async ({
+    organizationId,downPaymentPercentagePerUnit, iconUrl,
+    isPublished,location,maxReservationDuration,maxReservationLimitPerRep,projectName,
+    projectReferenceCode,videoUrl
+  }) => {
+    const TOKEN = process.env.TOKEN;
+    try {
+      const response = await axios.post(
+        `http://localhost:3001/organizations/${organizationId}/projects`,
+        {
+          downPaymentPercentagePerUnit,
+          iconUrl, isPublished, location,maxReservationDuration,
+          maxReservationLimitPerRep, projectName,
+          projectReferenceCode,videoUrl
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${TOKEN}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (err) {
+      `Error trying to execute the tool: ${err}`;
+    }
+  },
+};
+
 
 
 const tools = [SOLD_UNITS, AGENCY_SALES, BLOCK_BY_PROJECT,UNIT_BY_BLOCK,UNITDETAIL_BY_UNITID,
-  contracts_BY_AGENCY,ORGANIZATION_USERS,GET_REPRESENTATIVES,CREATE_AGENCY];
+  contracts_BY_AGENCY,ORGANIZATION_USERS,GET_REPRESENTATIVES,CREATE_AGENCY, CREATE_PROJECT];
 module.exports = tools;
