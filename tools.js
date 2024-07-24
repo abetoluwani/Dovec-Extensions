@@ -427,9 +427,59 @@ const CREATE_PROJECT = {
     }
   },
 };
+//NEW TOOL : Creates a new block for a specific project within an organization
+const createBlockSchema = yup.object({
+  organizationId: yup.number().label("organizationId").required("should be a number"), // Not stored in DB but used for routing
+  projectId: yup.number().label("projectId").required("should be a number"),
+  blockName: yup.string().label("blockName").required("should be a string"),
+  firstPromiseToPurchase: yup.number().label("firstPromiseToPurchase").required("should be a number"),
+  secondPromiseToPurchase: yup.number().label("secondPromiseToPurchase").required("should be a number"),
+  thirdPromiseToPurchase: yup.number().label("thirdPromiseToPurchase").required("should be a number"),
+  blockFloorPlan: yup.string().label("blockFloorPlan").nullable(),
+  blockDeliveryDate: yup.date().label("blockDeliveryDate").nullable(), // Should match DATETIME format
+  estimatedDeliveryDate: yup.string().label("estimatedDeliveryDate").required("should be a string"),
+});
+const createBlockJsonSchema = yupToJsonSchema(createBlockSchema);
+
+const CREATE_BLOCK = {
+  name: "create_block",
+  description: "Creates a new block for a specific project within an organization",
+  category: "hackathon",
+  subcategory: "communication",
+  functionType: "backend",
+  dangerous: false,
+  associatedCommands: [],
+  prerequisites: [],
+  parameters: createBlockJsonSchema,
+  rerun: true,
+  rerunWithDifferentParameters: false,
+  runCmd: async ({
+    organizationId, projectId, blockName, firstPromiseToPurchase, secondPromiseToPurchase,
+    thirdPromiseToPurchase, blockFloorPlan, blockDeliveryDate, estimatedDeliveryDate
+  }) => {
+    const TOKEN = process.env.TOKEN;
+    try {
+      const response = await axios.post(
+        `http://localhost:3001/organizations/${organizationId}/projects/${projectId}/blocks`,
+        {
+          blockName, firstPromiseToPurchase, secondPromiseToPurchase, thirdPromiseToPurchase,
+          blockFloorPlan, blockDeliveryDate, estimatedDeliveryDate
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${TOKEN}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (err) {
+      return `Error trying to execute the tool: ${err}`;
+    }
+  },
+};
 
 
 
 const tools = [SOLD_UNITS, AGENCY_SALES, BLOCK_BY_PROJECT,UNIT_BY_BLOCK,UNITDETAIL_BY_UNITID,
-  contracts_BY_AGENCY,ORGANIZATION_USERS,GET_REPRESENTATIVES,CREATE_AGENCY, CREATE_PROJECT];
+  contracts_BY_AGENCY,ORGANIZATION_USERS,GET_REPRESENTATIVES,CREATE_AGENCY, CREATE_PROJECT,CREATE_BLOCK];
 module.exports = tools;
