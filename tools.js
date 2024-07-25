@@ -612,7 +612,316 @@ const CREATE_BLOCK = {
   },
 };
 
-// tolu tools
+// NEW TOOL: Creates a new unit for a specific block within an organization
+
+const newPostUnitsSchema = yup.object({
+  organizationId: yup
+    .number()
+    .required()
+    .label("organizationId"),
+  salesRepresentative: yup
+    .number()
+    .required()
+    .label("salesRepresentative"),
+
+  blockId: yup
+    .number()
+    .required()
+    .label("blockId"),
+
+  addressLine1: yup
+    .string()
+    .nullable()
+    .label("addressLine1"),
+
+  addressLine2: yup
+    .string()
+    .nullable()
+    .label("addressLine2"),
+
+  block: yup
+    .string()
+    .nullable()
+    .label("block"),
+
+  nox: yup
+    .string()
+    .nullable()
+    .label("nox"),
+
+  floor: yup
+    .string()
+    .nullable()
+    .label("floor"),
+
+  unitSide: yup
+    .string()
+    .nullable()
+    .label("unitSide"),
+
+  unitNo: yup
+    .string()
+    .nullable()
+    .label("unitNo"),
+
+  unitPool: yup
+    .number()
+    .required()
+    .label("unitPool"),
+
+  unitType: yup
+    .string()
+    .nullable()
+    .label("unitType"),
+
+  unitArea: yup
+    .string()
+    .nullable()
+    .label("unitArea"),
+
+  unitPark: yup
+    .string()
+    .nullable()
+    .label("unitPark"),
+
+  unitTerrace: yup
+    .string()
+    .nullable()
+    .label("unitTerrace"),
+
+  unitBalcony: yup
+    .string()
+    .nullable()
+    .label("unitBalcony"),
+
+  unitTotalM2: yup
+    .string()
+    .nullable()
+    .label("unitTotalM2"),
+
+  unitGardenM2: yup
+    .string()
+    .nullable()
+    .label("unitGardenM2"),
+
+  roofTerraceArea: yup
+    .number()
+    .nullable()
+    .label("roofTerraceArea"),
+
+  landArea: yup
+    .number()
+    .nullable()
+    .label("landArea"),
+
+  unitPrice: yup
+    .number()
+    .nullable()
+    .label("unitPrice"),
+
+  unitReservationStatusId: yup
+    .number()
+    .nullable()
+    .label("unitReservationStatusId"),
+
+  unitNote: yup
+    .string()
+    .nullable()
+    .label("unitNote"),
+
+  unitDate: yup
+    .date()
+    .nullable()
+    .label("unitDate"),
+
+  showFlat: yup
+    .number()
+    .required()
+    .label("showFlat"),
+
+  memberId: yup
+    .number()
+    .required()
+    .label("memberId"),
+
+  unitFloorPlan: yup
+    .string()
+    .nullable()
+    .label("unitFloorPlan"),
+
+  unitLocation: yup
+    .string()
+    .nullable()
+    .label("unitLocation"),
+
+  reserveTime: yup
+    .string()
+    .nullable()
+    .label("reserveTime"),
+
+  reserverMail: yup
+    .number()
+    .required()
+    .label("reserverMail"),
+
+  depositStatus: yup
+    .number()
+    .required()
+    .label("depositStatus"),
+
+  depositTime: yup
+    .string()
+    .nullable()
+    .label("depositTime"),
+
+  soldTime: yup
+    .date()
+    .nullable()
+    .label("soldTime"),
+
+  resDelete: yup
+    .number()
+    .required()
+    .label("resDelete"),
+
+  lastMemberId: yup
+    .number()
+    .required()
+    .label("lastMemberId"),
+
+  lastReservedDate: yup
+    .string()
+    .nullable()
+    .label("lastReservedDate"),
+
+  updateRequest: yup
+    .number()
+    .required()
+    .label("updateRequest"),
+
+  requestExtend: yup
+    .number()
+    .required()
+    .label("requestExtend"),
+
+  transferMemberId: yup
+    .number()
+    .required()
+    .label("transferMemberId")
+});
+
+const createUnitJsonSchema = yupToJsonSchema(newPostUnitsSchema);
+
+const CREATE_UNIT = {
+  name: "create_unit",
+  description: "Creates a new unit for a specific block within an organization",
+  category: "real_estate",
+  subcategory: "unit_management",
+  functionType: "backend",
+  dangerous: false,
+  associatedCommands: [],
+  prerequisites: [],
+  parameters: createUnitJsonSchema,
+  rerun: true,
+  rerunWithDifferentParameters: false,
+  runCmd: async ({
+    organizationId,
+    salesRepresentative,
+    blockId,
+    addressLine1,
+    addressLine2,
+    block,
+    nox,
+    floor,
+    unitSide,
+    unitNo,
+    unitPool,
+    unitType,
+    unitArea,
+    unitPark,
+    unitTerrace,
+    unitBalcony,
+    unitTotalM2,
+    unitGardenM2,
+    roofTerraceArea,
+    landArea,
+    unitPrice,
+    unitReservationStatusId,
+    unitNote,
+    unitDate,
+    showFlat,
+    memberId,
+    unitFloorPlan,
+    unitLocation,
+    reserveTime,
+    reserverMail,
+    depositStatus,
+    depositTime,
+    soldTime,
+    resDelete,
+    lastMemberId,
+    lastReservedDate,
+    updateRequest,
+    requestExtend,
+    transferMemberId
+  }) => {
+    const TOKEN = process.env.TOKEN;
+    try {
+      const response = await axios.post(
+        `http://localhost:3001/organizations/${organizationId}/blocks/${blockId}/units`,
+        {
+          salesRepresentative,
+          blockId,
+          addressLine1,
+          addressLine2,
+          block,
+          nox,
+          floor,
+          unitSide,
+          unitNo,
+          unitPool,
+          unitType,
+          unitArea,
+          unitPark,
+          unitTerrace,
+          unitBalcony,
+          unitTotalM2,
+          unitGardenM2,
+          roofTerraceArea,
+          landArea,
+          unitPrice,
+          unitReservationStatusId,
+          unitNote,
+          unitDate,
+          showFlat,
+          memberId,
+          unitFloorPlan,
+          unitLocation,
+          reserveTime,
+          reserverMail,
+          depositStatus,
+          depositTime,
+          soldTime,
+          resDelete,
+          lastMemberId,
+          lastReservedDate,
+          updateRequest,
+          requestExtend,
+          transferMemberId
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${TOKEN}`
+          }
+        }
+      );
+      return response.data;
+    } catch (err) {
+      return `Error trying to execute the tool: ${err}`;
+    }
+  }
+};
+
 
 // Get reservations (dONE)
 const reservationSchema = yup.object({
@@ -1488,6 +1797,7 @@ const tools = [
   CREATE_AGENCY,
   CREATE_PROJECT,
   CREATE_BLOCK,
+  CREATE_UNIT,
   // tolu tools
   SOCIAL_MEDIA,
   GET_UNIT_AND_BLOCKS_BY_PROJECT_NAME,
