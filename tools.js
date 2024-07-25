@@ -612,7 +612,7 @@ const CREATE_BLOCK = {
   },
 };
 
-// NEW TOOL: Creates a new unit for a specific block within an organization
+// NEW TOOL: Creates a new unit for a specific block within an organization (ERROR ON BACKEND)
 
 const newPostUnitsSchema = yup.object({
   organizationId: yup
@@ -921,8 +921,112 @@ const CREATE_UNIT = {
     }
   }
 };
+//NEW TOOL : Creates a new contact for a specific organization(return nothing error 400)
+const createContactSchema = yup.object({
+  typeId: yup
+    .number()
+    .label('typeId')
+    .required('should be a number'),
+  channelId: yup
+    .number()
+    .label('channelId')
+    .required('should be a number'),
+  name: yup
+    .string()
+    .label('name')
+    .required('should be a string'),
+  email: yup
+    .string()
+    .label('email')
+    .required('should be a string'),
+  phone: yup
+    .string()
+    .label('phone')
+    .required('should be a string'),
+  country: yup
+    .string()
+    .label('country')
+    .required('should be a string'),
+  birthDate: yup
+    .date()
+    .label('birthDate')
+    .nullable(),
+  passportNumber: yup
+    .string()
+    .label('passportNumber')
+    .nullable(),
+  idNumber: yup
+    .string()
+    .label('idNumber')
+    .nullable(),
+  agencyId: yup
+    .number()
+    .label('agencyId')
+    .required('should be a number'),
+  organID: yup
+    .number()
+    .label('organID')
+    .required('should be a number'),
+});
+
+const createContactJsonSchema = yupToJsonSchema(createContactSchema);
+const CREATE_CONTACT = {
+  name: "create_contact",
+  description: "Creates a new contact for a specific organization",
+  category: "hackathon",
+  subcategory: "communication",
+  functionType: "backend",
+  dangerous: false,
+  associatedCommands: [],
+  prerequisites: [],
+  parameters: createContactJsonSchema,
+  rerun: true,
+  rerunWithDifferentParameters: false,
+  runCmd: async ({
+    organID,
+    typeId,
+    channelId,
+    name,
+    email,
+    phone,
+    country,
+    birthDate,
+    passportNumber,
+    idNumber,
+    agencyId,
+  }) => {
+    const TOKEN = process.env.TOKEN;
+    try {
+      const response = await axios.post(
+        `http://localhost:3001/organizations/${organID}/contacts`, 
+        {
+          typeId,
+          channelId,
+          name,
+          email,
+          phone,
+          country,
+          birthDate,
+          passportNumber,
+          idNumber,
+          agencyId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${TOKEN}`,
+          },
+        }
+      );
+      return response;
+    } catch (err) {
+      console.error(`Error trying to execute the tool: ${err}`);
+    }
+  },
+};
 
 
+
+// Tolu Tools Start from here:
 // Get reservations (dONE)
 const reservationSchema = yup.object({
   start_date: yup.date().label("start_date").required("should be a Date"),
@@ -1798,6 +1902,7 @@ const tools = [
   CREATE_PROJECT,
   CREATE_BLOCK,
   CREATE_UNIT,
+  CREATE_CONTACT,
   // tolu tools
   SOCIAL_MEDIA,
   GET_UNIT_AND_BLOCKS_BY_PROJECT_NAME,
