@@ -983,7 +983,7 @@ const GET_ALL_SOLD_UNITS = {
   parameters: soldAllUnitsJSONSchema,
   rerun: true,
   rerunWithDifferentParameters: true,
-  runCmd: async ({}) => {
+  runCmd: async ({ }) => {
     try {
       auth_token = process.env.AUTH_TOKEN;
 
@@ -1330,7 +1330,7 @@ const getUnitAndBlocksByProjectNameSchema = yup.object({
   projectName: yup.string().label("projectName").required(),
   organizationId: yup.number().label("organizationId").required(),
   availableStatus: yup
-    .string()
+    .number()
     .label("availableStatus")
     .optional("should be a string"),
 });
@@ -1339,7 +1339,7 @@ const getUnitAndBlocksByProjectNameSchemaJSONSchema = yupToJsonSchema(
 );
 const GET_UNIT_AND_BLOCKS_BY_PROJECT_NAME = {
   name: "get_unit_and_blocks_by_project_name",
-  description: "This tool gets unit and blocks by project name",
+  description: "This tool gets all available unit and blocks by project name",
   category: "Projects",
   subcategory: "Projects",
   functionType: "backend",
@@ -1352,6 +1352,7 @@ const GET_UNIT_AND_BLOCKS_BY_PROJECT_NAME = {
   runCmd: async ({ projectName, organizationId, availableStatus }) => {
     try {
       auth_token = process.env.AUTH_TOKEN;
+      availableStatus = 1;
       const { data } = await axios.get(
         `http://localhost:3001/organizations/${organizationId}/projects/${projectName}/availableStatus/${availableStatus}`,
         { headers: { Authorization: `Bearer ${auth_token}` } }
@@ -1403,7 +1404,7 @@ const getparamsforSocialMediaSchema = yup.object({
   projectName: yup.string().label("projectName").required(),
   organizationId: yup.number().label("organizationId").required(),
   availableStatus: yup
-    .string()
+    .number()
     .label("availableStatus")
     .optional("should be a string"),
 });
@@ -1426,6 +1427,7 @@ const SOCIAL_MEDIA = {
   runCmd: async ({ projectName, organizationId, availableStatus }) => {
     try {
       auth_token = process.env.AUTH_TOKEN;
+      availableStatus = 1;
       const { data } = await axios.get(
         `http://localhost:3001/organizations/${organizationId}/projects/${projectName}/availableStatus/${availableStatus}`,
         { headers: { Authorization: `Bearer ${auth_token}` } }
@@ -1444,6 +1446,59 @@ const SOCIAL_MEDIA = {
         totalAvailableBlocks,
         totalAvailableUnits,
       };
+    } catch (err) {
+      // Handle potential errors and return a meaningful message
+      return "Error trying to execute the tool " + err;
+    }
+  },
+};
+
+// GET UNIT AND BLOCKS BY PROJECT NAME (Done)
+const getAllSoldUnitByProjectNameSchema = yup.object({
+  projectName: yup.string().label("projectName").required(),
+  organizationId: yup.number().label("organizationId").required(),
+  availableStatus: yup
+    .number()
+    .label("availableStatus")
+    .optional("should be a string"),
+});
+const getAllSoldUnitByProjectNameSchemaJSONSchema = yupToJsonSchema(
+  getAllSoldUnitByProjectNameSchema
+);
+const GET_AVAILABLE_SOLD_UNITS_BY_PROJECT_NAME = {
+  name: "get_all_sold_units_by_project_name",
+  description: "This tool gets all sold unit by project name",
+  category: "Projects",
+  subcategory: "Projects",
+  functionType: "backend",
+  dangerous: false,
+  associatedCommands: [], // List any associated commands if applicable
+  prerequisites: [], // List any prerequisites for your tool to run
+  parameters: getUnitAndBlocksByProjectNameSchemaJSONSchema,
+  rerun: true,
+  rerunWithDifferentParameters: true,
+  runCmd: async ({ projectName, organizationId, availableStatus }) => {
+    try {
+      auth_token = process.env.AUTH_TOKEN;
+      availableStatus = 6;
+      const { data } = await axios.get(
+        `http://localhost:3001/organizations/${organizationId}/projects/${projectName}/availableStatus/${availableStatus}`,
+        { headers: { Authorization: `Bearer ${auth_token}` } }
+      );
+      console.log(data);
+      const response = data.unitsandBlocksbyProject;
+
+      // Structure the final result
+      const result = {
+        availableUnits: response.map((item) => ({
+          unitId: item.unitId,
+          blockName: item.blockName,
+          projectName: item.projectName,
+          unitStatusId: item.unitStatusId,
+        })),
+      };
+
+      return result;
     } catch (err) {
       // Handle potential errors and return a meaningful message
       return "Error trying to execute the tool " + err;
@@ -1489,6 +1544,7 @@ const tools = [
   CREATE_PROJECT,
   CREATE_BLOCK,
   // tolu tools
+  GET_AVAILABLE_SOLD_UNITS_BY_PROJECT_NAME,
   SOCIAL_MEDIA,
   GET_UNIT_AND_BLOCKS_BY_PROJECT_NAME,
   GET_ALL_SOLD_UNITS_BY_DATE,
