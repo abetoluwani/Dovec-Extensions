@@ -921,7 +921,7 @@ const CREATE_UNIT = {
     }
   }
 };
-//NEW TOOL : Creates a new contact for a specific organization(return nothing error 400)
+//NEW TOOL : Creates a new contact for a specific organization
 const createContactSchema = yup.object({
   typeId: yup
     .number()
@@ -943,10 +943,10 @@ const createContactSchema = yup.object({
     .string()
     .label('phone')
     .required('should be a string'),
-  country: yup
-    .string()
+    countryId: yup
+    .number()
     .label('country')
-    .required('should be a string'),
+    .required('should be a number'),
   birthDate: yup
     .date()
     .label('birthDate')
@@ -989,7 +989,7 @@ const CREATE_CONTACT = {
     name,
     email,
     phone,
-    country,
+    countryId,
     birthDate,
     passportNumber,
     idNumber,
@@ -1005,7 +1005,7 @@ const CREATE_CONTACT = {
           name,
           email,
           phone,
-          country,
+          countryId,
           birthDate,
           passportNumber,
           idNumber,
@@ -1017,12 +1017,14 @@ const CREATE_CONTACT = {
           },
         }
       );
-      return response;
+      return response.data;
     } catch (err) {
       console.error(`Error trying to execute the tool: ${err}`);
     }
   },
 };
+
+//NEW TOOL : 
 
 
 
