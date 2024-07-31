@@ -968,7 +968,6 @@ const createContactSchema = yup.object({
     .label('organID')
     .required('should be a number'),
 });
-
 const createContactJsonSchema = yupToJsonSchema(createContactSchema);
 const CREATE_CONTACT = {
   name: "create_contact",
@@ -1024,7 +1023,71 @@ const CREATE_CONTACT = {
   },
 };
 
-//NEW TOOL : 
+//NEW TOOL : gets contact details (email and phone number) by contact name
+
+const contactNameSchema = yup.object({
+  contactName: yup.string()
+    .required("Contact name is required")
+    .min(1, "Contact name cannot be empty")
+    .max(100, "Contact name is too long"),
+  organizationId: yup
+    .number()
+    .label("organizationId")
+    .required("should be a number"),
+});
+
+const contactNameJSONSchema = yupToJsonSchema(contactNameSchema);
+
+const GET_CONTACT_DETAILS_BY_NAME = {
+  name: "get_contact_details_by_name",
+  description: "This tool gets contact details (email and phone number) by contact name",
+  category: "Contact Management",
+  subcategory: "Contact Details",
+  functionType: "backend",
+  dangerous: false,
+  associatedCommands: [],
+  prerequisites: [],
+  parameters: contactNameJSONSchema,
+  rerun: true,
+  rerunWithDifferentParameters: true,
+  runCmd: async ({ contactName, organizationId }) => {
+    const TOKEN = process.env.TOKEN;
+
+    try {
+      // Validate the input parameters
+      await contactNameSchema.validate({ contactName ,organizationId});
+
+      // Construct the query string for filtering by contact name
+      const query = new URLSearchParams();
+      query.append("filters[0][column]", "contacts.name");
+      query.append("filters[0][operation]", "equals");
+      query.append("filters[0][values][0]", contactName);
+
+      // Fetch data from the API endpoint
+      const { data } = await axios.get(
+        `http://localhost:3001/organization/${organizationId}/contacts?${query.toString()}`,
+        { headers: { Authorization: `Bearer ${TOKEN}` } }
+      );
+
+      // Map the contacts to retrieve only email and phone number
+      const contacts = data.data;
+      const contactDetails = contacts.map(contact => ({
+        email: contact.email,
+        phoneNumber: contact.phone
+      }));
+
+      return contactDetails;
+    } catch (error) {
+      console.error("Error fetching contact details:", error);
+      return `Error trying to execute the tool: ${error.message}`;
+    }
+  }
+};
+
+
+
+
+
 
 
 
@@ -1430,7 +1493,6 @@ const GET_ALL_SOLD_UNITS = {
 const soldUnitsbypriceSchema = yup.object({
   price1: yup.number().label("price1").required(),
 });
-
 const soldUnitsbypriceJSONSchema = yupToJsonSchema(soldUnitsbypriceSchema);
 
 const GET_ALL_SOLD_UNITS_BY_PRICE = {
@@ -1905,6 +1967,7 @@ const tools = [
   CREATE_BLOCK,
   CREATE_UNIT,
   CREATE_CONTACT,
+  GET_CONTACT_DETAILS_BY_NAME,
   // tolu tools
   SOCIAL_MEDIA,
   GET_UNIT_AND_BLOCKS_BY_PROJECT_NAME,
