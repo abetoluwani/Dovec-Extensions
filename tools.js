@@ -1040,7 +1040,7 @@ const contactNameJSONSchema = yupToJsonSchema(contactNameSchema);
 
 const GET_CONTACT_DETAILS_BY_NAME = {
   name: "get_contact_details_by_name",
-  description: "This tool gets contact details (email and phone number) by contact name",
+  description: "This tool gets contact details (email and phone number,birthdate and agent name) by contact name",
   category: "Contact Management",
   subcategory: "Contact Details",
   functionType: "backend",
@@ -1054,10 +1054,10 @@ const GET_CONTACT_DETAILS_BY_NAME = {
     const TOKEN = process.env.TOKEN;
 
     try {
-     
-      //await contactNameSchema.validate({ contactName ,organizationId});
+      // Validate the input parameters
+      await contactNameSchema.validate({ contactName ,organizationId});
 
-     
+      // Construct the query string for filtering by contact name
       const query = new URLSearchParams();
       query.append("filters[0][column]", "contacts.name");
       query.append("filters[0][operation]", "equals");
@@ -1073,7 +1073,10 @@ const GET_CONTACT_DETAILS_BY_NAME = {
       const contacts = data.data;
       const contactDetails = contacts.map(contact => ({
         email: contact.email,
-        phoneNumber: contact.phone
+        phoneNumber: contact.phone,
+        agent_name :contact.agent_name,
+        birthDate :contact.birth_date,
+      
       }));
 
       return contactDetails;
@@ -1083,6 +1086,9 @@ const GET_CONTACT_DETAILS_BY_NAME = {
     }
   }
 };
+
+
+
 
 
 // Tolu Tools Start from here:
