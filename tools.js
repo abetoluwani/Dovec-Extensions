@@ -1054,10 +1054,10 @@ const GET_CONTACT_DETAILS_BY_NAME = {
     const TOKEN = process.env.TOKEN;
 
     try {
-      // Validate the input parameters
-      await contactNameSchema.validate({ contactName ,organizationId});
+     
+      //await contactNameSchema.validate({ contactName ,organizationId});
 
-      // Construct the query string for filtering by contact name
+     
       const query = new URLSearchParams();
       query.append("filters[0][column]", "contacts.name");
       query.append("filters[0][operation]", "equals");
@@ -1069,7 +1069,7 @@ const GET_CONTACT_DETAILS_BY_NAME = {
         { headers: { Authorization: `Bearer ${TOKEN}` } }
       );
 
-      // Map the contacts to retrieve only email and phone number
+      
       const contacts = data.data;
       const contactDetails = contacts.map(contact => ({
         email: contact.email,
@@ -1083,12 +1083,6 @@ const GET_CONTACT_DETAILS_BY_NAME = {
     }
   }
 };
-
-
-
-
-
-
 
 
 // Tolu Tools Start from here:
