@@ -787,70 +787,6 @@ const CONTRACT_MANAGER = {
   },
 };
 
-// const getdeposibystatusSchema = yup.object({
-//   deposit_status_id: yup.number().label().required(),
-// });
-
-// const getdeposibystatusJSONSchema = yupToJsonSchema(getdeposibystatusSchema);
-
-// const GET_DEPOSITS_BY_STATUS = {
-//   name: "get_deposits_by_status",
-//   description: "This tool gets deposits by status", // Describe functionality
-//   category: "Deposit", // Choose a relevant category
-//   subcategory: "Sorting", // Specify a subcategory if applicable
-//   functionType: "Backend", // Specify backend or frontend
-//   dangerous: false, // Set to true if user confirmation is required
-//   associatedCommands: [], // List any associated commands (if any)
-//   prerequisites: [], // List any prerequisites for your tool to run
-//   parameters: getdeposibystatusJSONSchema,
-//   rerun: true,
-//   rerunWithDifferentParameters: true, // Set to false if different parameters are not allowed
-//   runCmd: async ({ deposit_status_id }) => {
-//     try {
-//       // Implement your tool's logic here:
-
-//       const data = await axios.get(/* url based on parameters */);
-//       return JSON.stringify(data);
-//     } catch (err) {
-//       // Handle potential errors and return a meaningful message
-//       return "Error trying to execute the tool";
-//     }
-//   },
-// };
-
-// Get All Deposits
-
-// const getalldepositsSchema = yup.object();
-// const getalldepositsJSONSchema = yupToJsonSchema(getalldepositsSchema);
-
-// const GET_ALL_DEPOSITS = {
-//   name: "get_all_deposits",
-//   description: "This tool gets all deposits", // Describe functionality
-//   category: "Deposit", // Choose a relevant category
-//   subcategory: "Sorting", // Specify a subcategory if applicable
-//   functionType: "Backend", // Specify backend or frontend
-//   dangerous: false, // Set to true if user confirmation is required
-//   associatedCommands: [], // List any associated commands (if any)
-//   prerequisites: [], // List any prerequisites for your tool to run
-//   parameters: getalldepositsJSONSchema,
-//   rerun: true,
-//   rerunWithDifferentParameters: true, // Set to false if different parameters are not allowed
-//   runCmd: async () => {
-//     try {
-//       const auth_token = process.env.AUTH_TOKEN
-//       // Implement your tool's logic here:
-//       const data = await axios.get(`http://localhost:3001/get-all-deposits`,
-//         headers = {
-//           Authorization: `Bearer ${auth_token}`,
-//         }
-//       );
-//       return JSON.stringify(data);
-//     } catch (err) {
-//       // Handle potential errors and return a meaningful message
-//       return "Error trying to execute the tool " + err;
-//     }
-//   },
-// };
 
 // Update Deposit (Done)
 
@@ -1532,8 +1468,8 @@ const GET_AVAILABLE_SOLD_UNITS_BY_PROJECT_NAME = {
 //   },
 // };
 
-
-// Revenue Growth Calculator
+ 
+// Revenue  Calculator (Done)
 const revenueSchema = yup.object({
   start_date: yup.date().label("start date").required("should be a datetime"),
   end_date: yup.date().label("end date").required("should be a datetime"),
@@ -1552,30 +1488,7 @@ const REVENUE = {
   rerun: true,
   rerunWithDifferentParameters: true,
   runCmd: async ({ start_date, end_date }) => {
-    // try {
-
-    //   auth_token = process.env.AUTH_TOKEN;
-
-    //   // localhost:3001/units?filters[0][column]=units.unit_status_id&filters[0][operation]=equals&filters[0][values][0]=6&filters[1][column]=units.unit_price&filters[1][operation]=equals&filters[1][values][0]=3000
-    //   //localhost:3001/units?filters[0][column]=units.unit_status_id&filters[0][operation]=equals&filters[0][values][0]=6&filters[1][column]=units.unit_price&filters[1][operation]=between&filters[1][values][0]=3000&filters[1][values][1]=10000
-
-    //   const { data } = await axios.get(
-    //     `http://localhost:3001/units`,
-    //     { headers: { Authorization: `Bearer ${auth_token}` } }
-    //   );
-    //   // console.log(data)
-    //   const response = data.data.map((units) => {
-    //     return {
-    //       unitArea : units.unit_area,
-    //       unitPrice: units.unit_price,
-    //       unitLocaton: units.unit_location,
-    //       unitSoldtime: units.sold_time,
-    //     };
-    //   });
-    //   // console.log(response);
-    //   return response;
-
-    // }
+  
     try {
       auth_token = process.env.AUTH_TOKEN;
       const query = new URLSearchParams({ start_date, end_date });
@@ -1607,6 +1520,8 @@ const REVENUE = {
     }
   }
 };
+
+// Revenue Comparison (Done)
 
 const revenueComparisonSchema = yup.object({
   year1: yup.number().label("year1").required("should be a number"),
@@ -1692,6 +1607,8 @@ const REVENUE_COMPARISON = {
   },
 };
 
+// All Revenue Comparison (Done)p
+
 const allrevenue_comparisonSchema = yup.object({
   year1: yup.number().label("year1").required("should be a number"),
   year2: yup.number().label("year2").required("should be a number"),
@@ -1759,9 +1676,9 @@ const ALLREVENUE_COMPARISON = {
         }
 
         const prevData = revenueResults[index - 1];
-        let revenueChange;
-        let revenueAmount;
-        let revenuePercentageStatus;
+         revenueChange;
+         revenueAmount;
+         revenuePercentageStatus;
 
         if (prevData.totalRevenue === 0) {
           // If previous year revenue is 0
@@ -1801,6 +1718,95 @@ const ALLREVENUE_COMPARISON = {
 };
 
 
+// Get Project , Blocks and Units by Project Location
+const getUnitAndBlocksByProjectLocationSchema = yup.object({
+  location: yup.string().label("location").required("should be a string"),
+  organizationId: yup.number().label("organizationId").required(),
+});
+
+const GET_UNIT_AND_BLOCKS_BY_PROJECT_LOCATION = {
+  name: "get_unit_and_blocks_by_project_location",
+  description: "Get Unit And Blocks By Project Location",
+  subcategory: "Revenue",
+  functionType: "backend",
+  dangerous: false,
+  associatedCommands: [], // List any associated commands if applicable
+  prerequisites: [], // List any prerequisites for your tool to run
+  parameters: getUnitAndBlocksByProjectLocationSchema,
+  rerun: true,
+  rerunWithDifferentParameters: true,
+  runCmd: async ({ location, organizationId }) => {
+    try {
+      const auth_token = process.env.AUTH_TOKEN;
+
+      const response = await axios.get(
+        `http://localhost:3001/organizations/${organizationId}/projects/location/${location}`,
+        { headers: { Authorization: `Bearer ${auth_token}` } }
+      );
+
+      const data = response.data;
+
+      if (!data || !Array.isArray(data.projectsByLocation)) {
+        throw new Error("Invalid response structure");
+      }
+
+      // Create a map to aggregate data
+      const projectsMap = new Map();
+
+      data.projectsByLocation.forEach(item => {
+        const {
+          projectName,
+          blockName,
+          unitPrice,
+          unitId,
+          blockId,  
+          ...rest
+        } = item;
+
+        // Ensure project entry
+        if (!projectsMap.has(projectName)) {
+          projectsMap.set(projectName, {
+            projectName,
+            location: rest.location || '',
+            image_url: rest.iconUrl || [],
+            property_types: [],
+          });
+        }
+
+        const project = projectsMap.get(projectName);
+
+        // Ensure block entry
+        let block = project.property_types.find(pt => pt.propertyID === blockId);
+        if (!block) {
+          block = {
+              type: blockName || '',
+           };
+          project.property_types.push(block);
+        }
+
+        // Aggregate data
+        project.no_of_properties += 1;
+        // check the lowest unit price in all blocks
+ 
+      });
+
+      // Convert map to array
+      const formattedProjects = Array.from(projectsMap.values());
+
+      return { formattedProjects };
+
+    } catch (err) {
+      // Handle potential errors and return a meaningful message
+      return {
+        message: "Error trying to execute the tool: " + err.message
+      };
+    }
+
+
+  }
+};
+
+
 
 
 const tools = [
@@ -1817,6 +1823,7 @@ const tools = [
   CREATE_BLOCK,
   // tolu tools
   GET_AVAILABLE_SOLD_UNITS_BY_PROJECT_NAME,
+  GET_UNIT_AND_BLOCKS_BY_PROJECT_LOCATION,
   ALLREVENUE_COMPARISON,
   SOCIAL_MEDIA,
   REVENUE_COMPARISON,
