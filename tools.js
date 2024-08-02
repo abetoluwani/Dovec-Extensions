@@ -1738,65 +1738,19 @@ const GET_UNIT_AND_BLOCKS_BY_PROJECT_LOCATION = {
   runCmd: async ({ location, organizationId }) => {
     try {
       const auth_token = process.env.AUTH_TOKEN;
-
       const response = await axios.get(
         `http://localhost:3001/organizations/${organizationId}/projects/location/${location}`,
         { headers: { Authorization: `Bearer ${auth_token}` } }
       );
 
+      // Extract the projectsByLocation array from the response data
       const data = response.data;
+      
 
-      if (!data || !Array.isArray(data.projectsByLocation)) {
-        throw new Error("Invalid response structure");
-      }
-
-      // Create a map to aggregate data
-      const projectsMap = new Map();
-
-      data.projectsByLocation.forEach(item => {
-        const {
-          projectName,
-          blockName,
-          unitPrice,
-          unitId,
-          blockId,  
-          ...rest
-        } = item;
-
-        // Ensure project entry
-        if (!projectsMap.has(projectName)) {
-          projectsMap.set(projectName, {
-            projectName,
-            location: rest.location || '',
-            image_url: rest.iconUrl || [],
-            property_types: [],
-          });
-        }
-
-        const project = projectsMap.get(projectName);
-
-        // Ensure block entry
-        let block = project.property_types.find(pt => pt.propertyID === blockId);
-        if (!block) {
-          block = {
-              type: blockName || '',
-           };
-          project.property_types.push(block);
-        }
-
-        // Aggregate data
-        project.no_of_properties += 1;
-        // check the lowest unit price in all blocks
- 
-      });
-
-      // Convert map to array
-      const formattedProjects = Array.from(projectsMap.values());
-
-      return { formattedProjects };
+  
+      return data;
 
     } catch (err) {
-      // Handle potential errors and return a meaningful message
       return {
         message: "Error trying to execute the tool: " + err.message
       };
@@ -1810,17 +1764,17 @@ const GET_UNIT_AND_BLOCKS_BY_PROJECT_LOCATION = {
 
 
 const tools = [
-  SOLD_UNITS,
-  AGENCY_SALES,
-  BLOCK_BY_PROJECT,
-  UNIT_BY_BLOCK,
-  UNITDETAIL_BY_UNITID,
-  CONTRACTS_BY_AGENCY,
-  ORGANIZATION_USERS,
-  GET_REPRESENTATIVES,
-  CREATE_AGENCY,
-  CREATE_PROJECT,
-  CREATE_BLOCK,
+  // SOLD_UNITS,
+  // AGENCY_SALES,
+  // BLOCK_BY_PROJECT,
+  // UNIT_BY_BLOCK,
+  // UNITDETAIL_BY_UNITID,
+  // CONTRACTS_BY_AGENCY,
+  // ORGANIZATION_USERS,
+  // GET_REPRESENTATIVES,
+  // CREATE_AGENCY,
+  // CREATE_PROJECT,
+  // CREATE_BLOCK,
   // tolu tools
   GET_AVAILABLE_SOLD_UNITS_BY_PROJECT_NAME,
   GET_UNIT_AND_BLOCKS_BY_PROJECT_LOCATION,
