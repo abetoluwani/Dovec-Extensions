@@ -2202,12 +2202,12 @@ const tools = [
   CREATE_PROJECT,
   CREATE_BLOCK,
   CREATE_UNIT,//issue in backend ,it is impossible to create unit in api
-  CREATE_ACCOMMODATION,//issue, cant find the info in fe
+  CREATE_ACCOMMODATION,//issue, cant find the info in fe,sql syntax error
   CREATE_CONTACT,
   GET_CONTACT_DETAILS_BY_NAME,
   CREATE_CONTACT_NOTE,
   CREATE_CONTRACT,//issue nothing return,maybe related to unit part of api?!
-  GET_ALL_ACCOMMODATION_BY_CONTACT_ID,//issue
+  GET_ALL_ACCOMMODATION_BY_CONTACT_ID,//issue cant find the info in fe,sql syntax error
   
 
   // tolu tools
