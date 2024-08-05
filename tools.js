@@ -1253,6 +1253,80 @@ const CREATE_CONTACT_NOTE = {
   },
 };
 
+//NEW TOOL:Creates a new contract for a specific unit within an organization
+const createContractSchema = yup.object().shape({
+  organizationId: yup
+    .number()
+    .required("should be a number")
+    .label("organizationId"),
+  unitId: yup
+    .number()
+    .required("should be a number")
+    .label("unitId"),
+  contractName: yup
+    .string()
+    .required("should be a string")
+    .label("contractName"),
+  contractUrl: yup
+    .string()
+    .required("should be a string")
+    .label("contractUrl"),
+  periodOfValidity: yup
+    .date()
+    .nullable()
+    .label("periodOfValidity"),
+  contractStatusId: yup
+    .number()
+    .required("should be a number")
+    .label("contractStatusId"),
+});
+
+const createContractJsonSchema = yupToJsonSchema(createContractSchema);
+const CREATE_CONTRACT = {
+  name: "create_contract",
+  description: "Creates a new contract for a specific unit within an organization",
+  category: "hackathon",
+  subcategory: "contracts",
+  functionType: "backend",
+  dangerous: false,
+  associatedCommands: [],
+  prerequisites: [],
+  parameters: createContractJsonSchema,
+  rerun: true,
+  rerunWithDifferentParameters: false,
+  runCmd: async ({
+    organizationId,
+    unitId,
+    contractName,
+    contractUrl,
+    periodOfValidity,
+    contractStatusId,
+  }) => {
+    const TOKEN = process.env.TOKEN; 
+
+    try {
+      const response = await axios.post(
+        `http://localhost:3001/organizations/${organizationId}/units/${unitId}/contracts`,
+        {
+          contractName,
+          contractUrl,
+          periodOfValidity,
+          contractStatusId,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${TOKEN}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (err) {
+      throw new Error(`Error trying to execute the tool: ${err.message}`);
+    }
+  },
+};
+
+
 // Tolu Tools Start from here:
 // Get reservations (dONE)
 const reservationSchema = yup.object({
@@ -2132,6 +2206,7 @@ const tools = [
   CREATE_CONTACT,
   GET_CONTACT_DETAILS_BY_NAME,
   CREATE_CONTACT_NOTE,
+  CREATE_CONTRACT,
   GET_ALL_ACCOMMODATION_BY_CONTACT_ID,//issue
   
 
