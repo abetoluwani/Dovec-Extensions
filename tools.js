@@ -245,7 +245,7 @@ const CONTRACTS_BY_AGENCY = {
     }
   },
 };
-//7.NEW TOOL : returns a list of users associated with a specific organization
+//7.NEW TOOL : returns a list of users associated with a specific organization(error)
 const organizationUsersSchema = yup.object({
   orgId: yup.number().label("orgId").required("should be a number"),
 });
@@ -972,8 +972,8 @@ const createContactJsonSchema = yupToJsonSchema(createContactSchema);
 const CREATE_CONTACT = {
   name: "create_contact",
   description: "Creates a new contact for a specific organization",
-  category: "hackathon",
-  subcategory: "communication",
+  category: "Contact Management",
+  subcategory: "create contact",
   functionType: "backend",
   dangerous: false,
   associatedCommands: [],
@@ -1023,7 +1023,7 @@ const CREATE_CONTACT = {
   },
 };
 
-//NEW TOOL : gets contact details (email and phone number) by contact name
+//NEW TOOL : gets contact details (email and phone number,birthdate and agent name and contact ID) by contact name
 
 const contactNameSchema = yup.object({
   contactName: yup.string()
@@ -1040,7 +1040,7 @@ const contactNameJSONSchema = yupToJsonSchema(contactNameSchema);
 
 const GET_CONTACT_DETAILS_BY_NAME = {
   name: "get_contact_details_by_name",
-  description: "This tool gets contact details (email and phone number,birthdate and agent name) by contact name",
+  description: "This tool gets contact details (email and phone number,birthdate and agent name and contact ID) by contact name",
   category: "Contact Management",
   subcategory: "Contact Details",
   functionType: "backend",
@@ -1054,7 +1054,7 @@ const GET_CONTACT_DETAILS_BY_NAME = {
     const TOKEN = process.env.TOKEN;
 
     try {
-      // Validate the input parameters
+      
       await contactNameSchema.validate({ contactName ,organizationId});
 
       // Construct the query string for filtering by contact name
@@ -1076,6 +1076,7 @@ const GET_CONTACT_DETAILS_BY_NAME = {
         phoneNumber: contact.phone,
         agent_name :contact.agent_name,
         birthDate :contact.birth_date,
+        contact_ID : contact.contact_id,
       
       }));
 
@@ -1086,10 +1087,171 @@ const GET_CONTACT_DETAILS_BY_NAME = {
     }
   }
 };
+//NEW TOOL: Creates a new accommodation for a specific organization and contact(Error on sql syntax)
+const createAccommodationSchema = yup.object({
+  organizationId: yup.number().required().label("organizationId"),
+  contactId: yup.number().required().label("contactId"),
+  numberOfPeople: yup.number().nullable().label("numberOfPeople"),
+  checkInDate: yup.date().required().label("checkInDate"),
+  checkOutDate: yup.date().required().label("checkOutDate"),
+  resortName: yup.string().max(100).required().label("resortName"),
+  roomNumber: yup.string().max(50).required().label("roomNumber"),
+  notes: yup.string().max(255).nullable().label("notes"),
+});
+
+const createAccommodationJsonSchema = yupToJsonSchema(createAccommodationSchema);
+
+const CREATE_ACCOMMODATION = {
+  name: "create_accommodation",
+  description: "Creates a new accommodation for a specific organization and contact",
+  category: "accommodation",
+  subcategory: "management",
+  functionType: "backend",
+  dangerous: false,
+  associatedCommands: [],
+  prerequisites: [],
+  parameters: createAccommodationJsonSchema,
+  rerun: true,
+  rerunWithDifferentParameters: false,
+  runCmd: async ({
+    organizationId,
+    contactId,
+    numberOfPeople,
+    checkInDate,
+    checkOutDate,
+    resortName,
+    roomNumber,
+    notes,
+  }) => {
+    const TOKEN = process.env.TOKEN;
+    try {
+      const response = await axios.post(
+        `http://localhost:3001/organizations/${organizationId}/contacts/${contactId}/accommodations`,
+        {
+          numberOfPeople,
+          checkInDate,
+          checkOutDate,
+          resortName,
+          roomNumber,
+          notes,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${TOKEN}`, 
+          },
+        }
+      );
+      return response.data;
+    } catch (err) {
+      console.error(`Error trying to execute the tool: ${err}`);
+    }
+  },
+};
+
+// NEW TOOL: Returns accommodation based on provided details
+const accommodationSchema = yup.object({
+  organizationId: yup.number().label("organizationId").required("should be a number"),
+  contactId: yup.number().label("contactId").required("should be a number"),
+  pageSize: yup.number().label("pageSize").required("should be a number"),
+});
 
 
+const accommodationJsonSchema = yupToJsonSchema(accommodationSchema);
 
+const GET_ALL_ACCOMMODATION_BY_CONTACT_ID = {
+  name: "get_all_accommodation_by_contact_id",
+  description: "Returns all accommodation information associated with a specific contact ID in an organization.",
+  category: "hackathon",
+  subcategory: "accommodation",
+  functionType: "backend",
+  dangerous: false,
+  associatedCommands: [],
+  prerequisites: [],
+  parameters: accommodationJsonSchema,
+  rerun: true,
+  rerunWithDifferentParameters: false,
+  runCmd: async ({ organizationId, contactId, pageSize }) => {
+    const TOKEN = process.env.TOKEN;
+    try {
+      const response = await axios.get(
+        `http://localhost:3001/organizations/${organizationId}/contacts/${contactId}/accommodations`,
+        {
+          params: {
+            page_size: pageSize,
+          },
+          headers: {
+            Authorization: `Bearer ${TOKEN}`,
+          },
+        }
+      );
+      const { data } = response.data;
+      return JSON.stringify(data);
+    } catch (err) {
+      return `Error trying to execute the tool: ${err.message}`;
+    }
+  },
+};
+//new tool : Creates a new note for a specific contact within an organization
+const createContactNoteSchema = yup.object({
+  organizationId: yup
+    .number()
+    .label('organizationId')
+    .required('should be a number'),
+  contactId: yup
+    .number()
+    .label('contactId')
+    .required('should be a number'),
+  userOrganizationId: yup
+    .number()
+    .label('userOrganizationId')
+    .required('should be a number'),
+  notes: yup
+    .string()
+    .label('notes')
+    .required('should be a string'),
+});
 
+const createContactNoteJsonSchema = yupToJsonSchema(createContactNoteSchema);
+
+const CREATE_CONTACT_NOTE = {
+  name: "create_contact_note",
+  description: "Creates a new note for a specific contact within an organization",
+  category: "Contact Management",
+  subcategory: "create contact note",
+  functionType: "backend",
+  dangerous: false,
+  associatedCommands: [],
+  prerequisites: [],
+  parameters: createContactNoteJsonSchema,
+  rerun: true,
+  rerunWithDifferentParameters: false,
+  runCmd: async ({
+    organizationId,
+    contactId,
+    userOrganizationId,
+    notes,
+  }) => {
+    const TOKEN = process.env.TOKEN;
+    try {
+      const response = await axios.post(
+        `http://localhost:3001/organizations/${organizationId}/contacts/${contactId}/notes`,
+        {
+          userOrganizationId,
+          notes,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${TOKEN}`,
+          },
+        }
+      );
+      return response.data;
+    } catch (err) {
+      console.error(`Error trying to execute the tool: ${err}`);
+      throw err; 
+    }
+  },
+};
 
 // Tolu Tools Start from here:
 // Get reservations (dONE)
@@ -1966,8 +2128,13 @@ const tools = [
   CREATE_PROJECT,
   CREATE_BLOCK,
   CREATE_UNIT,
+  CREATE_ACCOMMODATION,//issue
   CREATE_CONTACT,
   GET_CONTACT_DETAILS_BY_NAME,
+  CREATE_CONTACT_NOTE,
+  GET_ALL_ACCOMMODATION_BY_CONTACT_ID,//issue
+  
+
   // tolu tools
   SOCIAL_MEDIA,
   GET_UNIT_AND_BLOCKS_BY_PROJECT_NAME,
