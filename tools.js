@@ -11,7 +11,6 @@ const getAgencySaleSchema = yup.object({
   agencyId: yup.number().label("agencyId").required("should be a number"),
 });
 const agencySalesJSONSchema = yupToJsonSchema(getAgencySaleSchema);
-//1.NEW TOOL :Returns sales data for all agencies according to agency ID
 const AGENCY_SALES = {
   name: "agency_sales",
   description: "Returns sales data for all agencies according to agency ID",
@@ -25,7 +24,7 @@ const AGENCY_SALES = {
   rerun: true,
   rerunWithDifferentParameters: true,
   runCmd: async ({ agencyId }) => {
-    const TOKEN = process.env.TOKEN;
+    const TOKEN = process.env.AUTH_TOKEN;
     try {
       const { data } = await axios.get(
         `http://localhost:3001/agencies/${agencyId}/sales`,
@@ -105,7 +104,7 @@ const BLOCK_BY_PROJECT = {
   rerun: true,
   rerunWithDifferentParameters: false,
   runCmd: async ({ projectId, organizationId, pageSize }) => {
-    const TOKEN = process.env.TOKEN;
+    const TOKEN = process.env.AUTH_TOKEN;
     try {
       const response = await axios.get(
         `http://localhost:3001/organizations/${organizationId}/projects/${projectId}/blocks`,
@@ -126,7 +125,7 @@ const BLOCK_BY_PROJECT = {
   },
 };
 
-// 4.NEW TOOL : Returns all UNITS associated with a specific BLOCK by BLOCK ID"
+// 4.NEW TOOL : Returns all UNITS associated with a specific BLOCK by BLOCK ID" 
 const unitByBlockSchema = yup.object({
   organizationID: yup
     .number()
@@ -150,7 +149,7 @@ const UNIT_BY_BLOCK = {
   rerun: true,
   rerunWithDifferentParameters: false,
   runCmd: async ({ organizationID, blockID, pageSIZE }) => {
-    const TOKEN = process.env.TOKEN;
+    const TOKEN = process.env.AUTH_TOKEN;
     try {
       const response = await axios.get(
         `http://localhost:3001/organizations/${organizationID}/blocks/${blockID}/units`,
@@ -195,7 +194,7 @@ const UNITDETAIL_BY_UNITID = {
   rerun: true,
   rerunWithDifferentParameters: false,
   runCmd: async ({ organization_ID, block_ID, unit_ID }) => {
-    const TOKEN = process.env.TOKEN;
+    const TOKEN = process.env.AUTH_TOKEN;
     try {
       const response = await axios.get(
         `http://localhost:3001/organizations/${organization_ID}/blocks/${block_ID}/units/${unit_ID}`,
@@ -229,7 +228,7 @@ const CONTRACTS_BY_AGENCY = {
   rerun: true,
   rerunWithDifferentParameters: false,
   runCmd: async ({ agencyID }) => {
-    const TOKEN = process.env.TOKEN;
+    const TOKEN = process.env.AUTH_TOKEN;
     try {
       const response = await axios.get(
         `http://localhost:3001/organizations/:organizationId/agencies/${agencyID}/contacts`,
@@ -266,7 +265,7 @@ const ORGANIZATION_USERS = {
   rerun: true,
   rerunWithDifferentParameters: false,
   runCmd: async ({ orgId }) => {
-    const TOKEN = process.env.TOKEN;
+    const TOKEN = process.env.AUTH_TOKEN;
     try {
       const response = await axios.get(
         `http://localhost:3001/organizations/${orgId}/users`,
@@ -303,7 +302,7 @@ const GET_REPRESENTATIVES = {
   rerun: true,
   rerunWithDifferentParameters: false,
   runCmd: async ({ orgID }) => {
-    const TOKEN = process.env.TOKEN;
+    const TOKEN = process.env.AUTH_TOKEN;
     try {
       const response = await axios.get(
         `http://localhost:3001/organizations/${orgID}/representatives`,
@@ -416,7 +415,7 @@ const CREATE_AGENCY = {
     agencyContract,
     authorizedSalesRepresentatives,
   }) => {
-    const TOKEN = process.env.TOKEN;
+    const TOKEN = process.env.AUTH_TOKEN;
     try {
       const response = await axios.post(
         `http://localhost:3001/organizations/${organizationId}/registration-requests`,
@@ -507,7 +506,7 @@ const CREATE_PROJECT = {
     projectReferenceCode,
     videoUrl,
   }) => {
-    const TOKEN = process.env.TOKEN;
+    const TOKEN = process.env.AUTH_TOKEN;
     try {
       const response = await axios.post(
         `http://localhost:3001/organizations/${organizationId}/projects`,
@@ -587,7 +586,7 @@ const CREATE_BLOCK = {
     blockDeliveryDate,
     estimatedDeliveryDate,
   }) => {
-    const TOKEN = process.env.TOKEN;
+    const TOKEN = process.env.AUTH_TOKEN;
     try {
       const response = await axios.post(
         `http://localhost:3001/organizations/${organizationId}/projects/${projectId}/blocks`,
@@ -623,7 +622,7 @@ const reservationSchema = yup.object({
 const reservationJSONSchema = yupToJsonSchema(reservationSchema);
 const ALL_RESERVATIONS_TOOL = {
   name: "gets_reservations",
-  description: "gets all reservations",
+  description: "gets all reservations that have been made on the platform",
   category: "Reporting",
   subcategory: "reservation",
   functionType: "backend",
@@ -752,41 +751,6 @@ const GET_RESERVATIONS_TO_SELL_OUT_RATIO = {
     }
   },
 };
-
-// Contract Manager
-
-const contractSchema = yup.object({
-  contractId: yup.string().required(),
-});
-
-const contractJSONSchema = yupToJsonSchema(contractSchema);
-
-const CONTRACT_MANAGER = {
-  name: "contract_manager",
-  description:
-    "Manages and responds to pending contract requests, including listing, generating, and approving contracts.",
-  category: "real_estate_management",
-  subcategory: "contracts",
-  functionType: "backend",
-  dangerous: false,
-  associatedCommands: [],
-  prerequisites: [],
-  parameters: contractJSONSchema,
-  rerun: true,
-  rerunWithDifferentParameters: true,
-  runCmd: async ({ contractId }) => {
-    try {
-      // Implement your tool's logic here:
-      const data = await axios.get(
-        `api/contracts/pending?contractId=${contractId}`
-      );
-      return JSON.stringify(data);
-    } catch (err) {
-      return "Error trying to execute the tool";
-    }
-  },
-};
-
 
 // Update Deposit (Done)
 
@@ -948,6 +912,8 @@ const GET_ALL_SOLD_UNITS = {
     }
   },
 };
+
+
 // GET ALL SOLD UNITS BY PRICE (Done)
 const soldUnitsbypriceSchema = yup.object({
   price1: yup.number().label("price1").required(),
@@ -1468,58 +1434,58 @@ const GET_AVAILABLE_SOLD_UNITS_BY_PROJECT_NAME = {
 //   },
 // };
 
- 
+
 // Revenue  Calculator (Done)
-const revenueSchema = yup.object({
-  start_date: yup.date().label("start date").required("should be a datetime"),
-  end_date: yup.date().label("end date").required("should be a datetime"),
-});
-const revenueSchemaJSONSchema = yupToJsonSchema(revenueSchema);
-const REVENUE = {
-  name: "revenue",
-  description: "This tool calculates the projected sales growth rate using revenue, growth targets, and ACV to determine how many leads you'll need.",
-  category: "Projects",
-  subcategory: "Projects",
-  functionType: "backend",
-  dangerous: false,
-  associatedCommands: [], // List any associated commands if applicable
-  prerequisites: [], // List any prerequisites for your tool to run
-  parameters: revenueSchemaJSONSchema,
-  rerun: true,
-  rerunWithDifferentParameters: true,
-  runCmd: async ({ start_date, end_date }) => {
-  
-    try {
-      auth_token = process.env.AUTH_TOKEN;
-      const query = new URLSearchParams({ start_date, end_date });
-      if ((start_date, end_date)) {
-        query.append("filters[1][column]", "units.sold_time");
-        query.append("filters[1][operation]", "isDateBetween");
-        query.append("filters[1][values][0]", start_date);
-        query.append("filters[1][values][1]", end_date);
-      }
-      const { data } = await axios.get(
-        `http://localhost:3001/units?filters[0][column]=units.unit_status_id&filters[0][operation]=equals&filters[0][values][0]=6&${query.toString()}`,
-        { headers: { Authorization: `Bearer ${auth_token}` } }
-      );
-      const response = data.data.map((unit) => ({
-        unitArea: unit.unit_area,
-        unitPrice: unit.unit_price,
-        unitLocation: unit.unit_location,
-        unitSoldTime: unit.sold_time,
-      }));
+// const revenueSchema = yup.object({
+//   start_date: yup.date().label("start date").required("should be a datetime"),
+//   end_date: yup.date().label("end date").required("should be a datetime"),
+// });
+// const revenueSchemaJSONSchema = yupToJsonSchema(revenueSchema);
+// const REVENUE = {
+//   name: "revenue",
+//   description: "This tool calculates the sales growth rate using revenue, growth targets, and ACV to determine how many leads you'll need.",
+//   category: "Projects",
+//   subcategory: "Projects",
+//   functionType: "backend",
+//   dangerous: false,
+//   associatedCommands: [], // List any associated commands if applicable
+//   prerequisites: [], // List any prerequisites for your tool to run
+//   parameters: revenueSchemaJSONSchema,
+//   rerun: true,
+//   rerunWithDifferentParameters: true,
+//   runCmd: async ({ start_date, end_date }) => {
 
-      const totalRevenue = response.reduce((total, unit) => total + unit.unitPrice, 0);
+//     try {
+//       auth_token = process.env.AUTH_TOKEN;
+//       const query = new URLSearchParams({ start_date, end_date });
+//       if ((start_date, end_date)) {
+//         query.append("filters[1][column]", "units.sold_time");
+//         query.append("filters[1][operation]", "isDateBetween");
+//         query.append("filters[1][values][0]", start_date);
+//         query.append("filters[1][values][1]", end_date);
+//       }
+//       const { data } = await axios.get(
+//         `http://localhost:3001/units?filters[0][column]=units.unit_status_id&filters[0][operation]=equals&filters[0][values][0]=6&${query.toString()}`,
+//         { headers: { Authorization: `Bearer ${auth_token}` } }
+//       );
+//       const response = data.data.map((unit) => ({
+//         unitArea: unit.unit_area,
+//         unitPrice: unit.unit_price,
+//         unitLocation: unit.unit_location,
+//         unitSoldTime: unit.sold_time,
+//       }));
 
-      return {
-        totalRevenue
-      };
-    } catch (err) {
-      // Handle potential errors and return a meaningful message
-      return "Error trying to execute the tool " + err;
-    }
-  }
-};
+//       const totalRevenue = response.reduce((total, unit) => total + unit.unitPrice, 0);
+
+//       return {
+//         totalRevenue
+//       };
+//     } catch (err) {
+//       // Handle potential errors and return a meaningful message
+//       return "Error trying to execute the tool " + err;
+//     }
+//   }
+// };
 
 // Revenue Comparison (Done)
 
@@ -1532,7 +1498,7 @@ const revenueComparisonJSONSchema = yupToJsonSchema(revenueComparisonSchema);
 
 const REVENUE_COMPARISON = {
   name: "revenue_comparison",
-  description: "This tool compares the revenue for different years and calculates the percentage increase or decrease, as well as identifies any losses.",
+  description: "This tool compares the revenue for 2 different years and gives the percentage increase or decrease , as well as identifies any losses.",
   category: "Projects",
   subcategory: "Revenue",
   functionType: "backend",
@@ -1570,8 +1536,6 @@ const REVENUE_COMPARISON = {
       const revenueYear1 = await fetchRevenueData(year1);
       const revenueYear2 = await fetchRevenueData(year2);
 
-      console.log(revenueYear1);
-      console.log(revenueYear2);
 
       // Calculate percentage change
       if (revenueYear1 === 0) {
@@ -1607,7 +1571,7 @@ const REVENUE_COMPARISON = {
   },
 };
 
-// All Revenue Comparison (Done)p
+// All Revenue Comparison (Done)
 
 const allrevenue_comparisonSchema = yup.object({
   year1: yup.number().label("year1").required("should be a number"),
@@ -1619,7 +1583,7 @@ const allrevenue_comparisonJSONSchema = yupToJsonSchema(allrevenue_comparisonSch
 
 const ALLREVENUE_COMPARISON = {
   name: "allrevenue_comparison",
-  description: "This tool compares the revenue for different years and calculates the percentage increase or decrease, as well as identifies any losses.",
+  description: "This tool compares the revenue for the range of 2 years and the years that fall within the range to find the total revenue , compares the revenue for amongst each other and gives  the percentage increase or decrease, as well as identifies any losses.",
   category: "Projects",
   subcategory: "Revenue",
   functionType: "backend",
@@ -1660,60 +1624,71 @@ const ALLREVENUE_COMPARISON = {
       }
 
       // Fetch revenue data for all years in the range
-      const revenueDataPromises = yearRange.map(year => fetchRevenueData(year));
+      const revenueDataPromises = yearRange.map((year) => fetchRevenueData(year));
       const revenueData = await Promise.all(revenueDataPromises);
 
       const revenueResults = yearRange.map((year, index) => ({
         year,
-        totalRevenue: revenueData[index]
+        totalRevenue: revenueData[index],
       }));
 
       // Calculate revenue change and status for each year compared to the previous year
       const results = revenueResults.map((data, index) => {
         if (index === 0) {
           // No previous year to compare with
-          return { ...data, revenueChange: 'N/A', revenueAmount: 'N/A', revenuePercentageStatus: 'N/A' };
+          return {
+            ...data,
+            revenueChange: 'N/A',
+            revenueAmount: 'N/A',
+            revenuePercentageStatus: 'N/A',
+          };
         }
 
         const prevData = revenueResults[index - 1];
-         revenueChange;
-         revenueAmount;
-         revenuePercentageStatus;
+        let revenueChange;
+        let revenueAmount;
+        let revenuePercentageStatus;
 
         if (prevData.totalRevenue === 0) {
           // If previous year revenue is 0
           revenueChange = data.totalRevenue > 0 ? 100 : 0;
         } else {
-          revenueChange = ((data.totalRevenue - prevData.totalRevenue) / prevData.totalRevenue) * 100;
+          revenueChange = ((data.totalRevenue - prevData.totalRevenue) / Math.abs(prevData.totalRevenue)) * 100;
         }
 
-        revenueAmount = data.totalRevenue > prevData.totalRevenue ? `Profit of ${data.totalRevenue - prevData.totalRevenue}` :
-          data.totalRevenue < prevData.totalRevenue ? `Loss of ${prevData.totalRevenue - data.totalRevenue}` :
-            'No change';
+        revenueAmount =
+          data.totalRevenue > prevData.totalRevenue
+            ? `Profit of ${data.totalRevenue - prevData.totalRevenue}`
+            : data.totalRevenue < prevData.totalRevenue
+              ? `Loss of ${prevData.totalRevenue - data.totalRevenue}`
+              : 'No change';
 
-        revenuePercentageStatus = data.totalRevenue > prevData.totalRevenue ? `${revenueChange.toFixed(2)}% Profit` :
-          data.totalRevenue < prevData.totalRevenue ? `${revenueChange.toFixed(2)}% Loss` :
-            'No change';
+        revenuePercentageStatus =
+          data.totalRevenue > prevData.totalRevenue
+            ? `${revenueChange.toFixed(2)}% Profit`
+            : data.totalRevenue < prevData.totalRevenue
+              ? `${revenueChange.toFixed(2)}% Loss`
+              : 'No change';
 
         return {
           ...data,
           revenueChange: revenueChange !== undefined ? revenueChange.toFixed(2) + '%' : 'N/A',
           revenueAmount,
-          revenuePercentageStatus
+          revenuePercentageStatus,
         };
       });
 
       return {
-        revenueResults: results
+        success: true,
+        revenueResults: results,
       };
-
-    } catch (err) {
-      // Handle potential errors and return a meaningful message
+    } catch (error) {
       return {
         success: false,
-        message: "Error trying to execute the tool: " + err.message
+        message: `Error trying to execute the tool: ${error.message}`,
       };
     }
+
   },
 };
 
@@ -1738,16 +1713,14 @@ const GET_UNIT_AND_BLOCKS_BY_PROJECT_LOCATION = {
   runCmd: async ({ location, organizationId }) => {
     try {
       const auth_token = process.env.AUTH_TOKEN;
-      const response = await axios.get(
+      const { data } = await axios.get(
         `http://localhost:3001/organizations/${organizationId}/projects/location/${location}`,
         { headers: { Authorization: `Bearer ${auth_token}` } }
       );
 
       // Extract the projectsByLocation array from the response data
-      const data = response.data;
-      
+      // const response = data.data;
 
-  
       return data;
 
     } catch (err) {
@@ -1764,35 +1737,33 @@ const GET_UNIT_AND_BLOCKS_BY_PROJECT_LOCATION = {
 
 
 const tools = [
-  // SOLD_UNITS,
-  // AGENCY_SALES,
-  // BLOCK_BY_PROJECT,
-  // UNIT_BY_BLOCK,
-  // UNITDETAIL_BY_UNITID,
-  // CONTRACTS_BY_AGENCY,
-  // ORGANIZATION_USERS,
-  // GET_REPRESENTATIVES,
-  // CREATE_AGENCY,
+  SOLD_UNITS, // Done
+  AGENCY_SALES, // Re-evaluate this tool
+  BLOCK_BY_PROJECT, // Re-evaluate this tool
+  // UNIT_BY_BLOCK, // "Error trying to execute the tool: AxiosError: Request failed with status code 500"
+  UNITDETAIL_BY_UNITID,
+  //CONTRACTS_BY_AGENCY, // Wrong Output it returns the contact details and has nothing to do with contracts
+  // ORGANIZATION_USERS, //"Error trying to execute the tool: AxiosError: Request failed with status code 500"
+  GET_REPRESENTATIVES,
+  CREATE_AGENCY,
   // CREATE_PROJECT,
   // CREATE_BLOCK,
   // tolu tools
-  GET_AVAILABLE_SOLD_UNITS_BY_PROJECT_NAME,
-  GET_UNIT_AND_BLOCKS_BY_PROJECT_LOCATION,
-  ALLREVENUE_COMPARISON,
-  SOCIAL_MEDIA,
-  REVENUE_COMPARISON,
-  GET_UNIT_AND_BLOCKS_BY_PROJECT_NAME,
-  GET_ALL_SOLD_UNITS_BY_DATE,
-  GET_ALL_SOLD_UNITS_BY_ADDRESS,
-  GET_ALL_SOLD_UNITS_BY_AREA,
-  GET_ALL_SOLD_UNITS_BY_LOCATION,
-  GET_ALL_SOLD_UNITS_BY_PRICE,
-  GET_ALL_SOLD_UNITS_BY_PRICERANGE,
+  GET_AVAILABLE_SOLD_UNITS_BY_PROJECT_NAME, // Done
+  // GET_UNIT_AND_BLOCKS_BY_PROJECT_LOCATION,
+  ALLREVENUE_COMPARISON, // Done
+  SOCIAL_MEDIA, // Done
+  REVENUE_COMPARISON, // Done
+  GET_UNIT_AND_BLOCKS_BY_PROJECT_NAME, // Done
+  GET_ALL_SOLD_UNITS_BY_DATE, // Done
+  GET_ALL_SOLD_UNITS_BY_ADDRESS, // Done
+  GET_ALL_SOLD_UNITS_BY_AREA, // Done
+  GET_ALL_SOLD_UNITS_BY_LOCATION, // Done
+  GET_ALL_SOLD_UNITS_BY_PRICE, // Done
+  GET_ALL_SOLD_UNITS_BY_PRICERANGE, // Done
   GET_RESERVATIONS_TO_SELL_OUT_RATIO,
-  ALL_RESERVATIONS_TOOL,
+  ALL_RESERVATIONS_TOOL, // Done
   UPDATE_DEPOSIT,
-  RESERVATION_MANAGER,
-  GET_ALL_SOLD_UNITS,
-  REVENUE,
+  GET_ALL_SOLD_UNITS, // Done
 ];
 module.exports = tools;
