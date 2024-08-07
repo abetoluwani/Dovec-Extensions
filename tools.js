@@ -248,7 +248,7 @@ const GET_ALL_DEPOSITS = {
 const reservetoselloutratioSchema = yup.object({
     start_date: yup.date().label("start_date").optional("should be a string"),
     end_date: yup.date().label("end_date").optional("should be a string"),
- });
+});
 const reservetoselloutratioJSONSchema = yupToJsonSchema(
     reservetoselloutratioSchema
 );
@@ -425,7 +425,7 @@ const GET_ALL_RESERVATIONS = {
             return "Error trying to execute the tool " + err;
         }
     },
-}; 
+};
 
 // GET ALL SOLD UNITS BY PRICE RANGE  (Done)
 const soldUnitsbypricerangeSchema = yup.object({
@@ -672,7 +672,6 @@ const GET_AVAILABLE_UNIT_AND_BLOCKS_BY_PROJECT_NAME = {
                 `http://localhost:3001/organizations/${organizationId}/projects/${projectName}/availableStatus/${availableStatus}`,
                 { headers: { Authorization: `Bearer ${auth_token}` } }
             );
-            console.log(data);
             const response = data.unitsandBlocksbyProject;
 
             // Process the data to count available units per block
@@ -714,6 +713,186 @@ const GET_AVAILABLE_UNIT_AND_BLOCKS_BY_PROJECT_NAME = {
     },
 };
 
+// Revenue Comparison (Done)
 
-const tools = [ GET_ALL_SOLD_UNITS_BY_DATE, GET_ALL_SOLD_UNITS_BY_PRICE, GET_ALL_SOLD_UNITS_BY_AREA, GET_ALL_SOLD_UNITS_BY_PRICERANGE, GET_RESERVATIONS_TO_SELL_OUT_RATIO, GET_ALL_UNITS, GET_ALL_RESERVATIONS, GET_ALL_DEPOSITS, GET_ALL_SOLD_UNITS, FILE_READER, PRODUCT_FINDER, WEATHER_FROM_LOCATION, GET_ALL_SOLD_UNITS_BY_PROJECT_NAME];
+const revenueComparisonSchema = yup.object({
+    year1: yup.number().label("year1").required("should be a number"),
+    year2: yup.number().label("year2").required("should be a number"),
+});
+
+const revenueComparisonJSONSchema = yupToJsonSchema(revenueComparisonSchema);
+
+const REVENUE_COMPARISON = {
+    name: "revenue_comparison_for_different_years",
+    description: "This tool compares the revenue for 2 different years and gives the percentage increase or decrease , as well as identifies any losses.",
+    category: "Projects",
+    subcategory: "Revenue",
+    functionType: "backend",
+    dangerous: false,
+    associatedCommands: [], // List any associated commands if applicable
+    prerequisites: [], // List any prerequisites for your tool to run
+    parameters: revenueComparisonJSONSchema,
+    rerun: true,
+    rerunWithDifferentParameters: true,
+    runCmd: async ({ year1, year2 }) => {
+        try {
+            const authToken = process.env.AUTH_TOKEN;
+
+            const fetchRevenueData = async (year) => {
+                const startDate = `${year}-01-01 00:00:00`;
+                const endDate = `${year}-12-31 23:59:59`;
+                const query = new URLSearchParams({
+                    "filters[1][column]": "units.sold_time",
+                    "filters[1][operation]": "isDateBetween",
+                    "filters[1][values][0]": startDate,
+                    "filters[1][values][1]": endDate,
+                });
+
+                const { data } = await axios.get(
+                    `http://localhost:3001/units?filters[0][column]=units.unit_status_id&filters[0][operation]=equals&filters[0][values][0]=6&${query.toString()}`,
+                    { headers: { Authorization: `Bearer ${authToken}` } }
+                );
+
+                return data.data.reduce((total, unit) => total + unit.unit_price, 0);
+            };
+
+            const [revenueYear1, revenueYear2] = await Promise.all([fetchRevenueData(year1), fetchRevenueData(year2)]);
+
+            const revenueChange = revenueYear1 === 0 ? (revenueYear2 > 0 ? 100 : 0) : ((revenueYear2 - revenueYear1) / revenueYear1) * 100;
+            const revenueAmount = revenueYear2 - revenueYear1;
+            const revenueAmountText = revenueAmount ? (revenueAmount > 0 ? `Profit of ${revenueAmount}` : `Loss of ${revenueAmount}`) : 'No change';
+            const revenuePercentageStatus = revenueChange ? (revenueYear2 > revenueYear1 ? `${revenueChange.toFixed(2)}% Profit` : `${revenueChange.toFixed(2)}% Loss`) : 'No change';
+
+            return {
+                year1: { year: year1, totalRevenue: revenueYear1 },
+                year2: { year: year2, totalRevenue: revenueYear2 },
+                revenueAmount: revenueAmountText,
+                revenuePercentageStatus,
+            };
+        } catch (error) {
+            return {
+                message: `Error trying to execute the tool: ${error.message}`
+            };
+        }
+    },
+};
+
+
+// Range Revenue Comparison (Done)
+
+const revenue_range_comparisonSchema = yup.object({
+    year1: yup.number().label("year1").required("should be a number"),
+    year2: yup.number().label("year2").required("should be a number"),
+});
+
+const revenue_range_comparisonJSONSchema = yupToJsonSchema(revenue_range_comparisonSchema);
+
+
+const REVENUE_RANGE_COMPARISON = {
+    name: "revenue_range_comparison",
+    description: "This tool compares the revenue for the range of 2 years and the years that fall within the range to find the total revenue , compares the revenue for amongst each other and gives  the percentage increase or decrease, as well as identifies any losses.",
+    category: "Projects",
+    subcategory: "Revenue",
+    functionType: "backend",
+    dangerous: false,
+    associatedCommands: [], // List any associated commands if applicable
+    prerequisites: [], // List any prerequisites for your tool to run
+    parameters: revenue_range_comparisonJSONSchema,
+    rerun: true,
+    rerunWithDifferentParameters: true,
+    runCmd: async ({ year1, year2 }) => {
+        try {
+
+            const authToken = process.env.AUTH_TOKEN;
+            if (!authToken) {
+                throw new Error('AUTH_TOKEN environment variable is missing');
+            }
+
+            const fetchRevenueData = async (year) => {
+                const startDate = `${year}-01-01 00:00:00`;
+                const endDate = `${year}-12-31 23:59:59`;
+                const query = new URLSearchParams({
+                    "filters[1][column]": "units.sold_time",
+                    "filters[1][operation]": "isDateBetween",
+                    "filters[1][values][0]": startDate,
+                    "filters[1][values][1]": endDate,
+                });
+
+                const response = await axios.get(
+                    `http://localhost:3001/units?filters[0][column]=units.unit_status_id&filters[0][operation]=equals&filters[0][values][0]=6&${query.toString()}`,
+                    { headers: { Authorization: `Bearer ${authToken}` } }
+                );
+
+                if (response.status !== 200) {
+                    throw new Error(`Failed to fetch revenue data for year ${year}: ${response.statusText}`);
+                }
+
+                const { data } = response;
+                if (!Array.isArray(data.data)) {
+                    throw new Error(`Invalid response data for year ${year}: ${JSON.stringify(data)}`);
+                }
+
+                return data.data.reduce((total, unit) => total + (unit.unit_price || 0), 0);
+            };
+
+            const yearRange = Array.from({ length: year2 - year1 + 1 }, (_, i) => year1 + i);
+
+            const revenueDataPromises = yearRange.map((year) => fetchRevenueData(year));
+            const revenueData = await Promise.all(revenueDataPromises);
+
+            const revenueResults = yearRange.map((year, index) => ({
+                year,
+                totalRevenue: revenueData[index],
+            }));
+
+            const results = revenueResults.map((data, index) => {
+                if (index === 0) {
+                    return {
+                        ...data,
+                        revenueChange: 'N/A',
+                        revenueAmount: 'N/A',
+                        revenuePercentageStatus: 'N/A',
+                    };
+                }
+
+                const prevData = revenueResults[index - 1];
+                const prevTotalRevenue = prevData.totalRevenue || 0;
+                const totalRevenue = data.totalRevenue || 0;
+                const revenueChange = ((totalRevenue - prevTotalRevenue) / Math.abs(prevTotalRevenue)) * 100;
+                const revenueAmount =
+                    totalRevenue > prevTotalRevenue
+                        ? `Profit of ${totalRevenue - prevTotalRevenue}`
+                        : totalRevenue < prevTotalRevenue
+                            ? `Loss of ${prevTotalRevenue - totalRevenue}`
+                            : 'No change';
+
+                const revenuePercentageStatus =
+                    totalRevenue > prevTotalRevenue
+                        ? `${revenueChange.toFixed(2)}% Profit`
+                        : totalRevenue < prevTotalRevenue
+                            ? `${revenueChange.toFixed(2)}% Loss`
+                            : 'No change';
+
+                return {
+                    ...data,
+                    revenueChange: revenueChange !== undefined ? revenueChange.toFixed(2) + '%' : 'N/A',
+                    revenueAmount,
+                    revenuePercentageStatus,
+                };
+            });
+
+            return {
+                revenueResults: results,
+            };
+        } catch (error) {
+            return {
+                message: `Error trying to execute the tool: ${error.message}`,
+            };
+        }
+    },
+};
+
+
+
+const tools = [REVENUE_RANGE_COMPARISON, REVENUE_COMPARISON, GET_AVAILABLE_UNIT_AND_BLOCKS_BY_PROJECT_NAME, GET_ALL_SOLD_UNITS_BY_DATE, GET_ALL_SOLD_UNITS_BY_PRICE, GET_ALL_SOLD_UNITS_BY_AREA, GET_ALL_SOLD_UNITS_BY_PRICERANGE, GET_RESERVATIONS_TO_SELL_OUT_RATIO, GET_ALL_UNITS, GET_ALL_RESERVATIONS, GET_ALL_DEPOSITS, GET_ALL_SOLD_UNITS, FILE_READER, PRODUCT_FINDER, WEATHER_FROM_LOCATION, GET_ALL_SOLD_UNITS_BY_PROJECT_NAME];
 module.exports = tools;
