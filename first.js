@@ -1779,10 +1779,10 @@ const GET_UNIT_AND_BLOCKS_BY_PROJECT_LOCATION = {
 
 
 const tools = [
-    FILE_READER,
-    PRODUCT_FINDER,
-    WEATHER_FROM_LOCATION,
-    SOLD_UNITS, // Done
+    // FILE_READER,
+    // PRODUCT_FINDER,
+    // WEATHER_FROM_LOCATION,
+    // SOLD_UNITS, // Done
     AGENCY_SALES, // Re-evaluate this tool
     BLOCK_BY_PROJECT, // Re-evaluate this tool
     // UNIT_BY_BLOCK, // "Error trying to execute the tool: AxiosError: Request failed with status code 500"
@@ -1795,7 +1795,7 @@ const tools = [
     // CREATE_BLOCK,
     // tolu tools
     // GET_AVAILABLE_SOLD_UNITS_BY_PROJECT_NAME, // Done
-    GET_UNIT_AND_BLOCKS_BY_PROJECT_LOCATION,
+    // GET_UNIT_AND_BLOCKS_BY_PROJECT_LOCATION,
     // ALLREVENUE_COMPARISON, // Done
     SOCIAL_MEDIA, // Done
     // REVENUE_COMPARISON, // Done
