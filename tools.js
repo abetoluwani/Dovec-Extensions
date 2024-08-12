@@ -893,47 +893,6 @@ const REVENUE_RANGE_COMPARISON = {
 };
 
 
-// Get Project , Blocks and Units by Project Location
-const getUnitAndBlocksByProjectLocationSchema = yup.object({
-    location: yup.string().label("location").required("should be a string"),
-    organizationId: yup.number().label("organizationId").required(),
-});
-
-const getUnitAndBlocksByProjectLocationSchemaJSONSchema = yupToJsonSchema(
-    getUnitAndBlocksByProjectLocationSchema
-);
-
-const GET_UNIT_AND_BLOCKS_BY_PROJECT_LOCATION = {
-    name: "get_unit_and_blocks_by_project_location",
-    description: "Get Unit And Blocks By Project Location",
-    category: "Projects",
-    subcategory: "Revenue",
-    functionType: "backend",
-    dangerous: false,
-    associatedCommands: [], // List any associated commands if applicable
-    prerequisites: [], // List any prerequisites for your tool to run
-    parameters: getUnitAndBlocksByProjectLocationSchemaJSONSchema,
-    rerun: true,
-    rerunWithDifferentParameters: true,
-    runCmd: async ({ location, organizationId }) => {
-        try {
-            const auth_token = process.env.AUTH_TOKEN;
-            const { data } = await axios.get(
-                `http://localhost:3001/organizations/${organizationId}/projects/location/${location}`,
-                { headers: { Authorization: `Bearer ${auth_token}` } }
-            );
-
-            return data;
-
-        } catch (err) {
-            return {
-                message: "Error trying to execute the tool: " + err.message
-            };
-        }
-
-
-    }
-};
 
 // Get All Projects
 const getAllProjectsSchema = yup.object({
@@ -964,7 +923,6 @@ const GET_ALL_PROJECTS = {
 
             const response = data.data;
 
-
             return response;
         } catch (err) {
             return {
@@ -974,42 +932,122 @@ const GET_ALL_PROJECTS = {
     }
 };
 
+// Get All Projects By Location
+const getAllProjectsByLocationSchema = yup.object({
+    location: yup.string().label("location").required("should be a string"),
+    organizationId: yup.number().label("organizationId").required(),
+});
 
-// Get All Pending Deposits (Done)
-const getAllPendingDepositsSchema = yup.object({
-})
-const getAllPendingDepositsSchemaJSONSchema = yupToJsonSchema(getAllPendingDepositsSchema);
+const getAllProjectsByLocationSchemaJSONSchema = yupToJsonSchema(getAllProjectsByLocationSchema);
 
-const GET_ALL_PENDING_DEPOSITS = {
-    name: "get_all_pending_deposits",
-    description: "Get All Pending Deposits",
+
+const GET_ALL_PROJECTS_BY_LOCATION = {
+    name: "get_all_projects_by_location",
+    description: "Get All Projects",
     category: "Projects",
-    subcategory: "Revenue",
+    subcategory: "Projects",
     functionType: "backend",
     dangerous: false,
     associatedCommands: [], // List any associated commands if applicable
     prerequisites: [], // List any prerequisites for your tool to run
-    parameters: getAllPendingDepositsSchemaJSONSchema,
+    parameters: getAllProjectsByLocationSchemaJSONSchema,
     rerun: true,
     rerunWithDifferentParameters: true,
-
-    runCmd: async () => {
+    runCmd: async ({ organizationId, location }) => {
         try {
             const auth_token = process.env.AUTH_TOKEN;
             const { data } = await axios.get(
-                `http://localhost:3001/get-all-pending-deposits`,
+                `http://localhost:3001/organizations/${organizationId}/projects/location/${location}`,
                 { headers: { Authorization: `Bearer ${auth_token}` } }
             );
-            const response = data.data;
-            return data;
-        } catch (err) {
-            return {
-                message: "Error trying to execute the tool: " + err.message
-            }
+
+            // Process data to create the desired response structure
+            const result = data.projectsByLocation.reduce((acc, project) => {
+                if (!acc[project.projectName]) {
+                    acc[project.projectName] = {
+                        projectName: project.projectName,
+                        iconUrl: project.iconUrl,
+                        videoUrl: project.videoUrl,
+                        downPaymentPercentagePerUnit: project.downPaymentPercentagePerUnit,
+                        location: project.location,
+                        totalBlocks: new Set(),
+                        totalUnits: 0,
+                        soldUnits: 0,
+                        availableUnits: 0,
+                        totalPrice: 0,
+                    };
+                }
+
+                const projectAcc = acc[project.projectName];
+
+                projectAcc.totalBlocks.add(project.block);
+                projectAcc.totalUnits += 1;
+                projectAcc.totalPrice += project.unitPrice;
+
+                if (project.unitStatusId === "Sold") {
+                    projectAcc.soldUnits += 1;
+                } else {
+                    projectAcc.availableUnits += 1;
+                }
+
+                return acc;
+            }, {});
+
+            // Convert Sets to their sizes and calculate starting prices
+            Object.values(result).forEach(project => {
+                project.totalBlocks = project.totalBlocks.size;
+                project.startingPrice = Math.round((project.totalPrice / project.totalUnits) * 1000) / 1000;
+                delete project.totalPrice;
+            });
+
+            // Create the final structured response
+            const response = Object.values(result);
+
+            return response;
+        } catch (error) {
+            console.error("Error fetching project data:", error);
         }
+
+
     }
 };
 
+
+// // Get All Pending Deposits (Not Completed yet)
+// const getAllPendingDepositsSchema = yup.object({
+// })
+// const getAllPendingDepositsSchemaJSONSchema = yupToJsonSchema(getAllPendingDepositsSchema);
+
+// const GET_ALL_PENDING_DEPOSITS = {
+//     name: "get_all_pending_deposits",
+//     description: "Get All Pending Deposits",
+//     category: "Projects",
+//     subcategory: "Revenue",
+//     functionType: "backend",
+//     dangerous: false,
+//     associatedCommands: [], // List any associated commands if applicable
+//     prerequisites: [], // List any prerequisites for your tool to run
+//     parameters: getAllPendingDepositsSchemaJSONSchema,
+//     rerun: true,
+//     rerunWithDifferentParameters: true,
+
+//     runCmd: async () => {
+//         try {
+//             const auth_token = process.env.AUTH_TOKEN;
+//             const { data } = await axios.get(
+//                 `http://localhost:3001/get-all-pending-deposits`,
+//                 { headers: { Authorization: `Bearer ${auth_token}` } }
+//             );
+//             const response = data.data;
+//             return data;
+//         } catch (err) {
+//             return {
+//                 message: "Error trying to execute the tool: " + err.message
+//             }
+//         }
+//     }
+// };
+
 // Update Deposit 
-const tools = [GET_ALL_PENDING_DEPOSITS, GET_ALL_PROJECTS, GET_UNIT_AND_BLOCKS_BY_PROJECT_LOCATION, REVENUE_RANGE_COMPARISON, REVENUE_COMPARISON, GET_AVAILABLE_UNIT_AND_BLOCKS_BY_PROJECT_NAME, GET_ALL_SOLD_UNITS_BY_DATE, GET_ALL_SOLD_UNITS_BY_PRICE, GET_ALL_SOLD_UNITS_BY_AREA, GET_ALL_SOLD_UNITS_BY_PRICERANGE, GET_RESERVATIONS_TO_SELL_OUT_RATIO, GET_ALL_UNITS, GET_ALL_RESERVATIONS, GET_ALL_DEPOSITS, GET_ALL_SOLD_UNITS, FILE_READER, PRODUCT_FINDER, WEATHER_FROM_LOCATION, GET_ALL_SOLD_UNITS_BY_PROJECT_NAME];
+const tools = [GET_ALL_PROJECTS_BY_LOCATION, GET_ALL_PROJECTS, REVENUE_RANGE_COMPARISON, REVENUE_COMPARISON, GET_AVAILABLE_UNIT_AND_BLOCKS_BY_PROJECT_NAME, GET_ALL_SOLD_UNITS_BY_DATE, GET_ALL_SOLD_UNITS_BY_PRICE, GET_ALL_SOLD_UNITS_BY_AREA, GET_ALL_SOLD_UNITS_BY_PRICERANGE, GET_RESERVATIONS_TO_SELL_OUT_RATIO, GET_ALL_UNITS, GET_ALL_RESERVATIONS, GET_ALL_DEPOSITS, GET_ALL_SOLD_UNITS, FILE_READER, PRODUCT_FINDER, WEATHER_FROM_LOCATION, GET_ALL_SOLD_UNITS_BY_PROJECT_NAME];
 module.exports = tools;
