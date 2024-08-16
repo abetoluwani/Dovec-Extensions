@@ -1048,6 +1048,188 @@ const GET_ALL_PROJECTS_BY_LOCATION = {
 //     }
 // };
 
+
+// GET ALL SOLD UNITS BY PRICE RANGE  (Done)
+const availableUnitsbypricerangeSchema = yup.object({
+    price1: yup.number().label("price1").required(),
+    price2: yup.number().label("price2").required(),
+});
+
+const availableUnitsbypricerangeJSONSchema = yupToJsonSchema(
+    availableUnitsbypricerangeSchema
+);
+
+const GET_ALL_AVAILABLE_UNITS_BY_PRICERANGE = {
+    name: "get_all_available_units_by_pricerange",
+    description: "This tool gets all available units by price range",
+    category: "Sales Analysis",
+    subcategory: "Performance Analysis",
+    functionType: "backend",
+    dangerous: false,
+    associatedCommands: [], // List any associated commands if applicable
+    prerequisites: [], // List any prerequisites for your tool to run
+    parameters: availableUnitsbypricerangeJSONSchema,
+    rerun: true,
+    rerunWithDifferentParameters: true,
+    runCmd: async ({ price1, price2 }) => {
+        try {
+            auth_token = process.env.AUTH_TOKEN;
+
+            // localhost:3001/units?filters[0][column]=units.unit_status_id&filters[0][operation]=equals&filters[0][values][0]=6&filters[1][column]=units.unit_price&filters[1][operation]=equals&filters[1][values][0]=3000
+            //localhost:3001/units?filters[0][column]=units.unit_status_id&filters[0][operation]=equals&filters[0][values][0]=6&filters[1][column]=units.unit_price&filters[1][operation]=between&filters[1][values][0]=3000&filters[1][values][1]=10000
+            const query = new URLSearchParams({ price1, price2 });
+
+            if (price1 && price2) {
+                query.append("filters[1][column]", "units.unit_price");
+                query.append("filters[1][operation]", "between");
+                query.append("filters[1][values][0]", price1);
+                query.append("filters[1][values][1]", price2);
+            }
+            const { data } = await axios.get(
+                `http://localhost:3001/units?filters[0][column]=units.unit_status_id&filters[0][operation]=equals&filters[0][values][0]=1&${query.toString()}`,
+                { headers: { Authorization: `Bearer ${auth_token}` } }
+            );
+            console.log(data);
+            const response = data.data.map((units) => {
+                return {
+                    // address: units.address_line_1,
+                    // unitType: units.unit_type,
+                    unitId: units.unit_id,
+                    unitArea: units.unit_area,
+                    block: units.block,
+                    unitPrice: units.unit_price,
+                    Address: units.address_line_1,
+                    Locaton: units.unit_location,
+
+                };
+            });
+            // console.log(response);
+            return response;
+        } catch (err) {
+            return "Error trying to execute the tool " + err;
+        }
+    },
+};
+
+// Available Units By Location
+const availableUnitsbyLocationSchema = yup.object({
+    location: yup.string().label("location").required(),
+});
+
+const availableUnitsbyLocationJSONSchema = yupToJsonSchema(
+    availableUnitsbyLocationSchema
+);
+
+const GET_ALL_AVAILABLE_UNITS_BY_LOCATION = {
+    name: "get_all_available_units_by_location",
+    description: "This tool gets all available units by price range",
+    category: "Sales Analysis",
+    subcategory: "Performance Analysis",
+    functionType: "backend",
+    dangerous: false,
+    associatedCommands: [], // List any associated commands if applicable
+    prerequisites: [], // List any prerequisites for your tool to run
+    parameters: availableUnitsbyLocationJSONSchema,
+    rerun: true,
+    rerunWithDifferentParameters: true,
+    runCmd: async ({ location }) => {
+        try {
+            auth_token = process.env.AUTH_TOKEN;
+
+            // localhost:3001/units?filters[0][column]=units.unit_status_id&filters[0][operation]=equals&filters[0][values][0]=6&filters[1][column]=units.unit_price&filters[1][operation]=equals&filters[1][values][0]=3000
+            //localhost:3001/units?filters[0][column]=units.unit_status_id&filters[0][operation]=equals&filters[0][values][0]=6&filters[1][column]=units.unit_price&filters[1][operation]=between&filters[1][values][0]=3000&filters[1][values][1]=10000
+            const query = new URLSearchParams({ location });
+
+            if (location) {
+                query.append("filters[1][column]", "units.unit_location");
+                query.append("filters[1][operation]", "equals");
+                query.append("filters[1][values][0]", location);
+            }
+            const { data } = await axios.get(
+                `http://localhost:3001/units?filters[0][column]=units.unit_status_id&filters[0][operation]=equals&filters[0][values][0]=1&${query.toString()}`,
+                { headers: { Authorization: `Bearer ${auth_token}` } }
+            );
+            console.log(data);
+            const response = data.data.map((units) => {
+                return {
+                    // address: units.address_line_1,
+                    // unitType: units.unit_type,
+                    unitId: units.unit_id,
+                    unitArea: units.unit_area,
+                    block: units.block,
+                    type: units.unit_type,
+                    unitPrice: units.unit_price,
+                    Address: units.address_line_1,
+                    Locaton: units.unit_location,
+
+                };
+            });
+            return response;
+        } catch (err) {
+            return "Error trying to execute the tool " + err;
+        }
+    },
+};
+
+// Available Units By Area
+const availableUnitsbyAreaSchema = yup.object({
+    area: yup.string().label("area").required(),
+});
+
+const availableUnitsbyAreaJSONSchema = yupToJsonSchema(
+    availableUnitsbyAreaSchema
+);
+
+const GET_ALL_AVAILABLE_UNITS_BY_AREA = {
+    name: "get_all_available_units_by_area",
+    description: "This tool gets all available units by price range",
+    category: "Sales Analysis",
+    subcategory: "Performance Analysis",
+    functionType: "backend",
+    dangerous: false,
+    associatedCommands: [], // List any associated commands if applicable
+    prerequisites: [], // List any prerequisites for your tool to run
+    parameters: availableUnitsbyAreaJSONSchema,
+    rerun: true,
+    rerunWithDifferentParameters: true,
+    runCmd: async ({ area }) => {
+        try {
+            auth_token = process.env.AUTH_TOKEN;
+
+            // localhost:3001/units?filters[0][column]=units.unit_status_id&filters[0][operation]=equals&filters[0][values][0]=6&filters[1][column]=units.unit_price&filters[1][operation]=equals&filters[1][values][0]=3000
+            //localhost:3001/units?filters[0][column]=units.unit_status_id&filters[0][operation]=equals&filters[0][values][0]=6&filters[1][column]=units.unit_price&filters[1][operation]=between&filters[1][values][0]=3000&filters[1][values][1]=10000
+            const query = new URLSearchParams({ area });
+
+            if (area) {
+                query.append("filters[1][column]", "units.unit_area");
+                query.append("filters[1][operation]", "equals");
+                query.append("filters[1][values][0]", area);
+            }
+            const { data } = await axios.get(
+                `http://localhost:3001/units?filters[0][column]=units.unit_status_id&filters[0][operation]=equals&filters[0][values][0]=1&${query.toString()}`,
+                { headers: { Authorization: `Bearer ${auth_token}` } }
+            );
+            console.log(data);
+            const response = data.data.map((units) => {
+                return {
+                    // address: units.address_line_1,
+                    // unitType: units.unit_type,
+                    unitId: units.unit_id,
+                    unitArea: units.unit_area,
+                    block: units.block,
+                    unitPrice: units.unit_price,
+                    Address: units.address_line_1,
+                    Locaton: units.unit_location,
+
+                };
+            });
+            return response;
+        } catch (err) {
+            return "Error trying to execute the tool " + err;
+        }
+    },
+};
+
 // Update Deposit 
-const tools = [GET_ALL_PROJECTS_BY_LOCATION, GET_ALL_PROJECTS, REVENUE_RANGE_COMPARISON, REVENUE_COMPARISON, GET_AVAILABLE_UNIT_AND_BLOCKS_BY_PROJECT_NAME, GET_ALL_SOLD_UNITS_BY_DATE, GET_ALL_SOLD_UNITS_BY_PRICE, GET_ALL_SOLD_UNITS_BY_AREA, GET_ALL_SOLD_UNITS_BY_PRICERANGE, GET_RESERVATIONS_TO_SELL_OUT_RATIO, GET_ALL_UNITS, GET_ALL_RESERVATIONS, GET_ALL_DEPOSITS, GET_ALL_SOLD_UNITS, FILE_READER, PRODUCT_FINDER, WEATHER_FROM_LOCATION, GET_ALL_SOLD_UNITS_BY_PROJECT_NAME];
+const tools = [GET_ALL_AVAILABLE_UNITS_BY_LOCATION, GET_ALL_AVAILABLE_UNITS_BY_AREA, GET_ALL_AVAILABLE_UNITS_BY_PRICERANGE, GET_ALL_PROJECTS_BY_LOCATION, GET_ALL_PROJECTS, REVENUE_RANGE_COMPARISON, REVENUE_COMPARISON, GET_AVAILABLE_UNIT_AND_BLOCKS_BY_PROJECT_NAME, GET_ALL_SOLD_UNITS_BY_DATE, GET_ALL_SOLD_UNITS_BY_PRICE, GET_ALL_SOLD_UNITS_BY_AREA, GET_ALL_SOLD_UNITS_BY_PRICERANGE, GET_RESERVATIONS_TO_SELL_OUT_RATIO, GET_ALL_UNITS, GET_ALL_RESERVATIONS, GET_ALL_DEPOSITS, GET_ALL_SOLD_UNITS, FILE_READER, PRODUCT_FINDER, WEATHER_FROM_LOCATION, GET_ALL_SOLD_UNITS_BY_PROJECT_NAME];
 module.exports = tools;
