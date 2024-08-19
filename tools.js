@@ -1279,6 +1279,65 @@ const UPDATE_DEPOSITS = {
     },
 };
 
+const createProjectSchema = yup.object({
+    organizationId: yup.number().required(),
+    downPaymentPercentagePerUnit: yup.number().required(),
+    iconUrl: yup.string().url().required(),
+    isPublished: yup.boolean().required(),
+    location: yup.string().required(),
+    maxReservationDuration: yup.number().required(),
+    maxReservationLimitPerRep: yup.number().required(),
+    projectName: yup.string().required(),
+    projectReferenceCode: yup.string().required(),
+    videoUrl: yup.string().url().required(),
+});
 
-const tools = [UPDATE_DEPOSITS, GET_ALL_AVAILABLE_UNITS_BY_LOCATION, GET_ALL_AVAILABLE_UNITS_BY_AREA, GET_ALL_AVAILABLE_UNITS_BY_PRICERANGE, GET_ALL_PROJECTS_BY_LOCATION, GET_ALL_PROJECTS, REVENUE_RANGE_COMPARISON, REVENUE_COMPARISON, GET_AVAILABLE_UNIT_AND_BLOCKS_BY_PROJECT_NAME, GET_ALL_SOLD_UNITS_BY_DATE, GET_ALL_SOLD_UNITS_BY_PRICE, GET_ALL_SOLD_UNITS_BY_AREA, GET_ALL_SOLD_UNITS_BY_PRICERANGE, GET_RESERVATIONS_TO_SELL_OUT_RATIO, GET_ALL_UNITS, GET_ALL_RESERVATIONS, GET_ALL_DEPOSITS, GET_ALL_SOLD_UNITS, FILE_READER, PRODUCT_FINDER, WEATHER_FROM_LOCATION, GET_ALL_SOLD_UNITS_BY_PROJECT_NAME];
+const createProjectJSONSchema = yupToJsonSchema(createProjectSchema);
+
+const CREATE_PROJECT = {
+    name: "create_project",
+    description: "This tool creates a new project for an organization",
+    category: "real_estate_management",
+    subcategory: "projects",
+    functionType: "backend",
+    dangerous: false,
+    associatedCommands: [], // List any associated commands if applicable
+    prerequisites: [], // List any prerequisites for your tool to run
+    parameters: createProjectJSONSchema,
+    rerun: true,
+    rerunWithDifferentParameters: true,
+    runCmd: async ({ organizationId, downPaymentPercentagePerUnit, iconUrl, isPublished, location, maxReservationDuration, maxReservationLimitPerRep, projectName, projectReferenceCode, videoUrl }) => {
+        try {
+            auth_token = process.env.AUTH_TOKEN;
+            const { data } = await axios.post(
+                `http://localhost:3001/organizations/${organizationId}/projects`,
+                {
+                    downPaymentPercentagePerUnit,
+                    iconUrl,
+                    isPublished,
+                    location,
+                    maxReservationDuration,
+                    maxReservationLimitPerRep,
+                    projectName,
+                    projectReferenceCode,
+                    videoUrl,
+                },
+                { headers: { Authorization: `Bearer ${auth_token}` } }
+            );
+
+            if (data && data.insertedProjectId) {
+                return `Project ${projectName}  was created successfully with ID ${data.insertedProjectId}`;
+            } else {
+                // Handle potential errors and why the project was not created and return a meaningful message
+                return "Failed to create project. No project ID returned.";
+            }
+        } catch (err) {
+            // Handle potential errors and return a meaningful message
+            return "Error trying to execute the tool: " + err.message;
+        }
+    },
+};
+
+
+const tools = [CREATE_PROJECT, UPDATE_DEPOSITS, GET_ALL_AVAILABLE_UNITS_BY_LOCATION, GET_ALL_AVAILABLE_UNITS_BY_AREA, GET_ALL_AVAILABLE_UNITS_BY_PRICERANGE, GET_ALL_PROJECTS_BY_LOCATION, GET_ALL_PROJECTS, REVENUE_RANGE_COMPARISON, REVENUE_COMPARISON, GET_AVAILABLE_UNIT_AND_BLOCKS_BY_PROJECT_NAME, GET_ALL_SOLD_UNITS_BY_DATE, GET_ALL_SOLD_UNITS_BY_PRICE, GET_ALL_SOLD_UNITS_BY_AREA, GET_ALL_SOLD_UNITS_BY_PRICERANGE, GET_RESERVATIONS_TO_SELL_OUT_RATIO, GET_ALL_UNITS, GET_ALL_RESERVATIONS, GET_ALL_DEPOSITS, GET_ALL_SOLD_UNITS, FILE_READER, PRODUCT_FINDER, WEATHER_FROM_LOCATION, GET_ALL_SOLD_UNITS_BY_PROJECT_NAME];
 module.exports = tools;
