@@ -314,16 +314,22 @@ const GET_RESERVATIONS_TO_SELL_OUT_RATIO = {
             const totalSellOuts = soldUnits.length;
             console.log(totalSellOuts, "totalSellOuts");
 
-
             // reservation ratio to sell out ratio
             reservationratio_to_selloutratio = totalReservations / totalSellOuts;
             selloutratio_to_reservationratio = totalSellOuts / totalReservations;
+            // calculate the ratio percentage
+            reservationratio_to_selloutratio_percentage =
+                ((reservationratio_to_selloutratio * 100) / totalSellOuts).toFixed(2);
+            selloutratio_to_reservationratio_percentage =
+                ((selloutratio_to_reservationratio * 100) / totalReservations).toFixed(2);
             return {
 
                 totalReservations,
                 totalSellOuts,
                 reservationratio_to_selloutratio,
+                reservationratio_to_selloutratio_percentage,
                 selloutratio_to_reservationratio,
+                selloutratio_to_reservationratio_percentage
             };
         } catch (err) {
             return "Error trying to execute the tool: " + err;
@@ -403,22 +409,25 @@ const GET_ALL_RESERVATIONS = {
     rerunWithDifferentParameters: true,
     runCmd: async ({ start_date, end_date }) => {
         try {
+            
             const query = new URLSearchParams({ start_date, end_date });
+
             if (start_date && end_date) {
-                query.append(
-                    "filters[0][column]",
-                    "unit_reservations.reservation_start_date"
-                );
-                console.log(data, "dataaa");
+                query.append("filters[0][column]","unit_reservations.reservation_start_date");
                 query.append("filters[0][operation]", "isDateBetween");
                 query.append("filters[0][values][0]", start_date);
                 query.append("filters[0][values][1]", end_date);
             };
-
             const { data } = await axios.get(
                 `http://localhost:3001/unit-reservations/?${query.toString()}`
             );
-            const response = data.data;
+            const response = data.data.map((reservation) => ({
+                reservation_id: reservation.unit_reservation_id,
+                unit_id: reservation.unit_id,
+                address : reservation.venue_address,
+                reservation_start_date: reservation.reservation_start_date,
+                reservation_end_date: reservation.reservation_end_date,
+            }));
 
             return response;
         } catch (err) {
@@ -522,6 +531,8 @@ const GET_ALL_SOLD_UNITS_BY_AREA = {
             console.log(data);
             const response = data.data.map((units) => {
                 return {
+                    address: units.address_line_1,
+                    block : units.block,
                     unitArea: units.unit_area,
                     unitPrice: units.unit_price,
                     unitLocaton: units.unit_location,
@@ -576,6 +587,7 @@ const GET_ALL_SOLD_UNITS_BY_PRICE = {
             const response = data.data.map((units) => {
                 return {
                     address: units.address_line_1,
+                    block: units.block,
                     unitType: units.unit_type,
                     unitPrice: units.unit_price,
                     unitLocaton: units.unit_location,
@@ -686,7 +698,6 @@ const GET_AVAILABLE_UNIT_AND_BLOCKS_BY_PROJECT_NAME = {
                 acc[item.blockName].availableUnitsCount += 1;
                 acc[item.blockName].availableUnits.push({
                     unitId: item.unitId,
-                    unitStatusId: item.unitStatusId,
                 });
                 return acc;
             }, {});
@@ -701,7 +712,6 @@ const GET_AVAILABLE_UNIT_AND_BLOCKS_BY_PROJECT_NAME = {
                     unitId: item.unitId,
                     blockName: item.blockName,
                     projectName: item.projectName,
-                    unitStatusId: item.unitStatusId,
                 })),
             };
 
@@ -1231,5 +1241,44 @@ const GET_ALL_AVAILABLE_UNITS_BY_AREA = {
 };
 
 // Update Deposit 
-const tools = [GET_ALL_AVAILABLE_UNITS_BY_LOCATION, GET_ALL_AVAILABLE_UNITS_BY_AREA, GET_ALL_AVAILABLE_UNITS_BY_PRICERANGE, GET_ALL_PROJECTS_BY_LOCATION, GET_ALL_PROJECTS, REVENUE_RANGE_COMPARISON, REVENUE_COMPARISON, GET_AVAILABLE_UNIT_AND_BLOCKS_BY_PROJECT_NAME, GET_ALL_SOLD_UNITS_BY_DATE, GET_ALL_SOLD_UNITS_BY_PRICE, GET_ALL_SOLD_UNITS_BY_AREA, GET_ALL_SOLD_UNITS_BY_PRICERANGE, GET_RESERVATIONS_TO_SELL_OUT_RATIO, GET_ALL_UNITS, GET_ALL_RESERVATIONS, GET_ALL_DEPOSITS, GET_ALL_SOLD_UNITS, FILE_READER, PRODUCT_FINDER, WEATHER_FROM_LOCATION, GET_ALL_SOLD_UNITS_BY_PROJECT_NAME];
+const updateDepositSchema = yup.object({
+    depositId: yup.number().label("depositId"),
+    status : yup.string().label("status"),
+});
+
+const updatedepositJSONSchema = yupToJsonSchema(updateDepositSchema);
+
+const UPDATE_DEPOSITS = {
+    name: "updatedeposit",
+    description: "This tool updates deposits",
+    category: "real_estate_management",
+    subcategory: "deposits",
+    functionType: "backend",
+    dangerous: false,
+    associatedCommands: [], // List any associated commands if applicable
+    prerequisites: [], // List any prerequisites for your tool to run
+    parameters: updatedepositJSONSchema,
+    rerun: true,
+    rerunWithDifferentParameters: true,
+    runCmd: async ({depositId , status }) => {
+        try {
+            auth_token = process.env.AUTH_TOKEN;
+            const { data } = await axios.put(
+                `http://localhost:3001/update-deposit/depositId/${depositId}/status/${status}`,
+                { headers: { Authorization: `Bearer ${auth_token}` } }
+            );
+            console.log(data);
+
+            if (data.success === true) {
+                return `Deposit ${depositId} has been ${status} successfully`;
+            }
+        } catch (err) {
+            // Handle potential errors and return a meaningful message
+            return "Error trying to execute the tool " + err;
+        }
+    },
+};
+
+
+const tools = [UPDATE_DEPOSITS, GET_ALL_AVAILABLE_UNITS_BY_LOCATION, GET_ALL_AVAILABLE_UNITS_BY_AREA, GET_ALL_AVAILABLE_UNITS_BY_PRICERANGE, GET_ALL_PROJECTS_BY_LOCATION, GET_ALL_PROJECTS, REVENUE_RANGE_COMPARISON, REVENUE_COMPARISON, GET_AVAILABLE_UNIT_AND_BLOCKS_BY_PROJECT_NAME, GET_ALL_SOLD_UNITS_BY_DATE, GET_ALL_SOLD_UNITS_BY_PRICE, GET_ALL_SOLD_UNITS_BY_AREA, GET_ALL_SOLD_UNITS_BY_PRICERANGE, GET_RESERVATIONS_TO_SELL_OUT_RATIO, GET_ALL_UNITS, GET_ALL_RESERVATIONS, GET_ALL_DEPOSITS, GET_ALL_SOLD_UNITS, FILE_READER, PRODUCT_FINDER, WEATHER_FROM_LOCATION, GET_ALL_SOLD_UNITS_BY_PROJECT_NAME];
 module.exports = tools;
