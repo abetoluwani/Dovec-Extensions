@@ -7,142 +7,7 @@ const { response } = require("express");
 
 
 // start here 
-const createagencySchema = yup.object({
-  organizationId: yup
-    .number()
-    .label("organizationId")
-    .required("should be a number"),
-  agencyLevel: yup.number().label("agencyLevel").required("should be a number"),
-  mainAgency: yup.number().label("mainAgency").nullable(),
-  agencyName: yup.string().label("agencyName").required("should be a string"),
-  authorizedUserName: yup
-    .string()
-    .label("authorizedUserName")
-    .required("should be a string"),
-  authorizedUserSurname: yup
-    .string()
-    .label("authorizedUserSurname")
-    .required("should be a string"),
-  authorizedUserEmail: yup
-    .string()
-    .email()
-    .label("authorizedUserEmail")
-    .required("should be a valid email"),
-  country: yup.number().label("country").required("should be a number"),
-  authorizedUserPhoneNumber: yup
-    .string()
-    .label("authorizedUserPhoneNumber")
-    .required("should be a string"),
-  agencyPhoneNumber: yup
-    .string()
-    .label("agencyPhoneNumber")
-    .required("should be a string"),
-  agencySecondPhoneNumber: yup
-    .string()
-    .label("agencySecondPhoneNumber")
-    .nullable(),
-  agencyEmail: yup
-    .string()
-    .email()
-    .label("agencyEmail")
-    .required("should be a valid email"),
-  agencyCommissionRate: yup
-    .number()
-    .label("agencyCommissionRate")
-    .required("should be a number"),
-  agencyStatus: yup
-    .number()
-    .label("agencyStatus")
-    .required("should be a number"),
-  requestStatus: yup
-    .number()
-    .label("requestStatus")
-    .required("should be a number"),
-  address: yup.string().label("address").nullable(),
-  websiteUrl: yup.string().label("websiteUrl").nullable(),
-  agencyContract: yup.string().label("agencyContract").nullable(),
-  authorizedSalesRepresentatives: yup
-    .array()
-    .of(yup.number())
-    .label("authorizedSalesRepresentatives")
-    .required("should be an array of numbers"),
 
-  userOrganizationId: yup.number().label("userOrganizationId").required("should be a number"),
-});
-const createAgencyJsonSchema = yupToJsonSchema(createagencySchema);
-
-const CREATE_AGENCY = {
-  name: "create_agancy",
-  description: "Creates a new registration request",
-  category: "hackathon",
-  subcategory: "management",
-  functionType: "backend",
-  dangerous: false,
-  associatedCommands: [],
-  prerequisites: [],
-  parameters: createAgencyJsonSchema,
-  rerun: true,
-  rerunWithDifferentParameters: true,
-  runCmd: async ({
-    organizationId,
-    agencyLevel,
-    mainAgency,
-    agencyName,
-    authorizedUserName,
-    authorizedUserSurname,
-    authorizedUserEmail,
-    country,
-    authorizedUserPhoneNumber,
-    agencyPhoneNumber,
-    agencySecondPhoneNumber,
-    agencyEmail,
-    agencyCommissionRate,
-    agencyStatus,
-    requestStatus,
-    address,
-    websiteUrl,
-    agencyContract,
-    authorizedSalesRepresentatives,
-    userOrganizationId,
-  }) => {
-    const TOKEN = process.env.TOKEN;
-    try {
-      const response = await axios.post(
-        `http://localhost:3001/organizations/${organizationId}/registration-requests`,
-        {
-          agencyLevel,
-          mainAgency,
-          agencyName,
-          authorizedUserName,
-          authorizedUserSurname,
-          authorizedUserEmail,
-          country,
-          authorizedUserPhoneNumber,
-          agencyPhoneNumber,
-          agencySecondPhoneNumber,
-          agencyEmail,
-          agencyCommissionRate,
-          agencyStatus,
-          requestStatus,
-          address,
-          websiteUrl,
-          agencyContract,
-          authorizedSalesRepresentatives,
-          userOrganizationId
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${TOKEN}`,
-          },
-        }
-      );
-
-      return JSON.parse(response.data);
-    } catch (err) {
-      return `Error trying to execute the tool: ${err}`;
-    }
-  },
-};
 //TOOL : GET_CONTACT_DETAILS_BY_NAME 
 const contactNameSchema = yup.object({
   contactName: yup.string()
@@ -814,76 +679,133 @@ const GET_CONTACT_NOTES = {
 
 //NEW TOOL : Creates a new project for a specific organization
 const createProjectSchema = yup.object({
-  organizationId: yup
-    .number()
-    .label("organizationId")
-    .required("should be a number"),
-  downPaymentPercentagePerUnit: yup
-    .number()
-    .label("downPaymentPercentagePerUnit")
-    .required("should be a number"),
-  iconUrl: yup.string().label("iconUrl").nullable(),
-  isPublished: yup.boolean().label("isPublished").default(false),
-  location: yup.string().label("location").nullable(),
-  maxReservationDuration: yup
-    .number()
-    .label("maxReservationDuration")
-    .required("should be a number"),
-  maxReservationLimitPerRep: yup
-    .number()
-    .label("maxReservationLimitPerRep")
-    .required("should be a number"),
-  projectName: yup.string().label("projectName").required("should be a string"),
-  projectReferenceCode: yup
-    .string()
-    .label("projectReferenceCode")
-    .required("should be a string"),
-  videoUrl: yup.string().label("videoUrl").nullable(),
+  organizationId: yup.number().required(),
+  downPaymentPercentagePerUnit: yup.number().required(),
+  iconUrl: yup.string().url().required(),
+  isPublished: yup.boolean().required(),
+  location: yup.string().required(),
+  maxReservationDuration: yup.number().required(),
+  maxReservationLimitPerRep: yup.number().required(),
+  projectName: yup.string().required(),
+  projectReferenceCode: yup.string().required(),
+  videoUrl: yup.string().url().required(),
 });
-const createProjectJsonSchema = yupToJsonSchema(createProjectSchema);
+
+const createProjectJSONSchema = yupToJsonSchema(createProjectSchema);
+
 const CREATE_PROJECT = {
   name: "create_project",
-  description: "Creates a new project for a specific organization",
-  category: "hackathon",
-  subcategory: "communication",
+  description: "This tool creates a new project for an organization",
+  category: "real_estate_management",
+  subcategory: "projects",
   functionType: "backend",
   dangerous: false,
-  associatedCommands: [],
-  prerequisites: [], 
-  parameters: createProjectJsonSchema,
+  associatedCommands: [], // List any associated commands if applicable
+  prerequisites: [], // List any prerequisites for your tool to run
+  parameters: createProjectJSONSchema,
   rerun: true,
   rerunWithDifferentParameters: true,
   runCmd: async ({
-    organizationId,
-    downPaymentPercentagePerUnit,
-    iconUrl,
-    isPublished,
-    location,
-    maxReservationDuration,
-    maxReservationLimitPerRep,
-    projectName,
-    projectReferenceCode,
-    videoUrl,
+      organizationId,
+      downPaymentPercentagePerUnit,
+      iconUrl,
+      isPublished,
+      location,
+      maxReservationDuration,
+      maxReservationLimitPerRep,
+      projectName,
+      projectReferenceCode,
+      videoUrl,
+  }) => {
+      try {
+        const TOKEN = process.env.TOKEN;
+
+          const { data } = await axios.post(
+              `http://localhost:3001/organizations/${organizationId}/projects`, // Correct string interpolation
+              {
+                  downPaymentPercentagePerUnit,
+                  iconUrl,
+                  isPublished,
+                  location,
+                  maxReservationDuration,
+                  maxReservationLimitPerRep,
+                  projectName,
+                  projectReferenceCode,
+                  videoUrl,
+              },
+              {  headers: {
+                Authorization: `Bearer ${TOKEN}`,
+              }, } // Corrected Authorization header
+          );
+
+          if (data && data.insertedProjectId) {
+              return `Project ${projectName} was created successfully with ID ${data.insertedProjectId}`; // Correct string literals
+          } else {
+              return "Failed to create project. No project ID returned.";
+          }
+      } catch (err) {
+          return "Error trying to execute the tool: " + err.message;
+      }
+  },
+};
+
+// NEW TOOL: Creates a new contact for a specific organization
+const createContactSchema = yup.object({
+  typeId: yup.number().required(),
+  channelId: yup.number().required(),
+  name: yup.string().required(),
+  email: yup.string().required(),
+  phone: yup.string().required(),
+  countryId: yup.number().required(),
+  birthDate: yup.date().required(),
+  passportNumber: yup.string().required(),
+  idNumber: yup.string().required(),
+  agencyId: yup.number().required(),
+  organID: yup.number().required(),
+});
+
+const createContactJsonSchema = yupToJsonSchema(createContactSchema);
+
+const CREATE_CONTACT = {
+  name: "create_contact",
+  description: "Creates a new contact for a specific organization",
+  category: "Contact Management",
+  subcategory: "create contact",
+  functionType: "backend",
+  dangerous: false,
+  associatedCommands: [],
+  prerequisites: [],
+  parameters: createContactJsonSchema,
+  rerun: true,
+  rerunWithDifferentParameters: true,
+  runCmd: async ({
+    organID,
+    typeId,
+    channelId,
+    name,
+    email,
+    phone,
+    countryId,
+    birthDate,
+    passportNumber,
+    idNumber,
+    agencyId,
   }) => {
     const TOKEN = process.env.TOKEN;
-    if (!TOKEN) {
-      console.error("No authorization token found.");
-      return;
-    }
-  
     try {
-      const response = await axios.post(
-        `http://localhost:3001/organizations/${organizationId}/projects`,
+      const { data } = await axios.post(
+        `http://localhost:3001/organizations/${organID}/contacts`,
         {
-          downPaymentPercentagePerUnit,
-          iconUrl,
-          isPublished,
-          location,
-          maxReservationDuration,
-          maxReservationLimitPerRep,
-          projectName,
-          projectReferenceCode,
-          videoUrl,
+          typeId,
+          channelId,
+          name,
+          email,
+          phone,
+          countryId,
+          birthDate,
+          passportNumber,
+          idNumber,
+          agencyId,
         },
         {
           headers: {
@@ -891,24 +813,23 @@ const CREATE_PROJECT = {
           },
         }
       );
-      return response.data;
-    } catch (err) {
-      console.error("Error trying to execute the tool:", err.message);
-      if (err.response) {
-        console.error("Response data:", err.response.data);
-        console.error("Response status:", err.response.status);
-        console.error("Response headers:", err.response.headers);
+      
+      if (data && data.insertedContactId) { 
+        return `Contactc ${name} was created successfully with ID ${data.insertedContactId}`; 
+      } else {
+        return "Failed to create contact. No contact ID returned.";
       }
-      throw err; // Rethrow the error after logging
+    } catch (err) {
+      return `Error trying to execute the tool: ${err.message}`; 
     }
   },
-  
 };
 
 
-const tools = [GET_CONTACT_DETAILS_BY_NAME,GET_BLOCK_BY_PROJECT,
-  GET_PROJECTS_DETAIL,UNITDETAIL_BY_UNITID,CONTRACTS_DETAIL_BY_AGENCYID,ACCOMMODATION_RESERVED_DETAIL_BY_CONTACT_ID,
-  GET_CONTACTS ,GET_ACCOMMODATION_DETAILS_BY_CHECKOUT,CREATE_CONTACT_NOTE,GET_AUTHORIZED_SALES_REPRESENTATIVES,GET_REPRESENTATIVES,
-  GET_ORGANIZATION_AGENCIES, GET_MAIN_AGENCIES ,GET_CONTACT_NOTES,
+const tools = [GET_CONTACT_DETAILS_BY_NAME,GET_BLOCK_BY_PROJECT,GET_PROJECTS_DETAIL,UNITDETAIL_BY_UNITID,
+  CONTRACTS_DETAIL_BY_AGENCYID,ACCOMMODATION_RESERVED_DETAIL_BY_CONTACT_ID,GET_CONTACTS ,
+  GET_ACCOMMODATION_DETAILS_BY_CHECKOUT,CREATE_CONTACT_NOTE,GET_AUTHORIZED_SALES_REPRESENTATIVES,
+  GET_REPRESENTATIVES,GET_ORGANIZATION_AGENCIES, GET_MAIN_AGENCIES ,GET_CONTACT_NOTES,
+   CREATE_PROJECT,CREATE_CONTACT
 ];
 module.exports = tools;
