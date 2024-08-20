@@ -127,8 +127,6 @@ const projectSchema = yup.object({
     .required("should be a number"),
   pageSize: yup.number().label("pageSize").required("should be a number")
 });
-
-
 const projectsJsonSchema = yupToJsonSchema(projectSchema);
 
 const GET_PROJECTS_DETAIL = {
@@ -749,19 +747,87 @@ const CREATE_PROJECT = {
   },
 };
 
-// NEW TOOL: Creates a new contact for a specific organization
+
+// NEW TOOL: Create a new Accommodation
+const createAccommodationSchema = yup.object({
+  organizationId: yup.number().required(),
+  contactId: yup.number().required(),
+  numberOfPeople: yup.number().required(),
+  checkInDate: yup.date().required(),
+  checkOutDate: yup.date().required(),
+  resortName: yup.string().max(100).required(),
+  roomNumber: yup.string().max(50).required(),
+  notes: yup.string().max(255).required(),
+});
+
+const createAccommodationJsonSchema = yupToJsonSchema(createAccommodationSchema);
+
+const CREATE_ACCOMMODATION = {
+  name: "create_accommodation",
+  description: "Creates a new accommodation for a specific organization and contact",
+  category: "Accommodation Management",
+  subcategory: "create accommodation",
+  functionType: "backend",
+  dangerous: false,
+  associatedCommands: [],
+  prerequisites: [],
+  parameters: createAccommodationJsonSchema,
+  rerun: true,
+  rerunWithDifferentParameters: true,
+  runCmd: async ({
+    organizationId,
+    contactId,
+    numberOfPeople,
+    checkInDate,
+    checkOutDate,
+    resortName,
+    roomNumber,
+    notes,
+  }) => {
+    const TOKEN = process.env.TOKEN;
+    try {
+      const { data } = await axios.post(
+        `http://localhost:3001/organizations/${organizationId}/contacts/${contactId}/accommodations`,
+        {
+          numberOfPeople,
+          checkInDate,
+          checkOutDate,
+          resortName,
+          roomNumber,
+          notes,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${TOKEN}`,
+          },
+        }
+      );
+      
+      if (data && data.insertedAccommodationId) { 
+        return `Accommodation at ${resortName} was created successfully with ID ${data.insertedAccommodationId}`; 
+      } else {
+        return "Failed to create accommodation. No accommodation ID returned.";
+      }
+    } catch (err) {
+      return `Error trying to execute the tool: ${err.message}`; 
+    }
+  },
+};
+
+//new tool: create contact
 const createContactSchema = yup.object({
+  organizationId: yup.number().required(),
   typeId: yup.number().required(),
   channelId: yup.number().required(),
-  name: yup.string().required(),
-  email: yup.string().required(),
-  phone: yup.string().required(),
+  name: yup.string().max(100).required(),
+  email: yup.string().max(100).required(),
+  phone: yup.string().max(100).required(),
   countryId: yup.number().required(),
   birthDate: yup.date().required(),
-  passportNumber: yup.string().required(),
-  idNumber: yup.string().required(),
+  passportNumber: yup.string().max(100).required(),
+  idNumber: yup.string().max(100).required(),
   agencyId: yup.number().required(),
-  organID: yup.number().required(),
+  contactReferalSelectionRadio: yup.string().oneOf(["Direct", "Via Agency"]).required(),
 });
 
 const createContactJsonSchema = yupToJsonSchema(createContactSchema);
@@ -779,7 +845,7 @@ const CREATE_CONTACT = {
   rerun: true,
   rerunWithDifferentParameters: true,
   runCmd: async ({
-    organID,
+    organizationId,
     typeId,
     channelId,
     name,
@@ -790,11 +856,12 @@ const CREATE_CONTACT = {
     passportNumber,
     idNumber,
     agencyId,
+    contactReferalSelectionRadio
   }) => {
     const TOKEN = process.env.TOKEN;
     try {
-      const { data } = await axios.post(
-        `http://localhost:3001/organizations/${organID}/contacts`,
+      const {data} = await axios.post(
+        `http://localhost:3001/organizations/${organizationId}/contacts`,
         {
           typeId,
           channelId,
@@ -806,6 +873,7 @@ const CREATE_CONTACT = {
           passportNumber,
           idNumber,
           agencyId,
+          contactReferalSelectionRadio,
         },
         {
           headers: {
@@ -813,9 +881,9 @@ const CREATE_CONTACT = {
           },
         }
       );
-      
+
       if (data && data.insertedContactId) { 
-        return `Contactc ${name} was created successfully with ID ${data.insertedContactId}`; 
+        return `Contact was created successfully with ID ${data.insertedContactId}`; 
       } else {
         return "Failed to create contact. No contact ID returned.";
       }
@@ -826,10 +894,12 @@ const CREATE_CONTACT = {
 };
 
 
+
+
 const tools = [GET_CONTACT_DETAILS_BY_NAME,GET_BLOCK_BY_PROJECT,GET_PROJECTS_DETAIL,UNITDETAIL_BY_UNITID,
   CONTRACTS_DETAIL_BY_AGENCYID,ACCOMMODATION_RESERVED_DETAIL_BY_CONTACT_ID,GET_CONTACTS ,
   GET_ACCOMMODATION_DETAILS_BY_CHECKOUT,CREATE_CONTACT_NOTE,GET_AUTHORIZED_SALES_REPRESENTATIVES,
   GET_REPRESENTATIVES,GET_ORGANIZATION_AGENCIES, GET_MAIN_AGENCIES ,GET_CONTACT_NOTES,
-   CREATE_PROJECT,CREATE_CONTACT
+   CREATE_PROJECT, CREATE_ACCOMMODATION,CREATE_CONTACT,
 ];
 module.exports = tools;
