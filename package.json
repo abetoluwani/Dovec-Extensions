@@ -11,10 +11,10 @@
 	"dependencies": {
 		"@sodaru/yup-to-json-schema": "^2.0.1",
 		"axios": "^1.7.4",
-		"body-parser": "^1.20.2",
+		"body-parser": "^1.20.3",
 		"connect-sqlite3": "^0.9.15",
 		"dotenv": "^16.4.5",
-		"express": "^4.19.2",
+		"express": "^4.21.0",
 		"express-session": "^1.18.0",
 		"morgan": "^1.10.0",
 		"mysql": "^2.18.1",
