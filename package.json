@@ -11,7 +11,7 @@
 	"dependencies": {
 		"@sodaru/yup-to-json-schema": "^2.0.1",
 		"axios": "^1.7.4",
-		"body-parser": "^1.20.2",
+		"body-parser": "^1.20.3",
 		"connect-sqlite3": "^0.9.15",
 		"dotenv": "^16.4.5",
 		"express": "^4.21.0",
